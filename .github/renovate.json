@@ -1,0 +1,3 @@
+{
+    "extends": ["github>kdt310722/renovate-config"]
+}

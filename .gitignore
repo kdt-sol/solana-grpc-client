@@ -1,0 +1,65 @@
+# macOS
+._*
+.DS_Store
+
+# Linux
+*~
+.directory
+.fuse_hidden*
+.nfs*
+
+# Windows
+[Dd]esktop.ini
+Thumbs.db*
+
+# Package managers
+*.tgz
+.npm
+.yarn
+node_modules
+
+# TypeScript
+*.tsbuildinfo
+
+# IDE and editor files
+.idea
+.vscode
+
+# Compiled output
+.next
+.nuxt
+build
+dist
+lib
+out
+
+# Logs
+*.log*
+logs
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Testing
+*.lcov
+coverage
+coverage-ts
+test-results
+
+# Environment variables
+!.env.example
+!example.env
+*.env*
+
+# ESLint
+.eslintcache
+
+# Miscellaneous
+*.bak
+*.swp
+
+# Test files
+src/test.ts
+
+# Generated files
+src/proto/generated

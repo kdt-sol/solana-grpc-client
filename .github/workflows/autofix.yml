@@ -1,0 +1,36 @@
+name: autofix.ci
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+permissions:
+    contents: read
+
+jobs:
+    autofix:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: lts/*
+
+            - name: Install pnpm
+              uses: pnpm/action-setup@v2
+              with:
+                  version: latest
+
+            - name: Install dependencies
+              run: pnpm install
+
+            - name: Fix lint issues
+              run: pnpm lint:fix
+
+            - uses: autofix-ci/action@551dded8c6cc8a1054039c8bc0b8b48c51dfc6ef
+              with:
+                  commit-message: 'chore: apply automated lint fixes'

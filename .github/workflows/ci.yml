@@ -1,0 +1,43 @@
+name: ci
+
+on:
+    push:
+    pull_request:
+
+permissions:
+    statuses: write
+
+jobs:
+    ci:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Set commit status as pending
+              uses: myrotvorets/set-commit-status-action@master
+
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: lts/*
+
+            - name: Install pnpm
+              uses: pnpm/action-setup@v2
+              with:
+                  version: latest
+
+            - name: Install dependencies
+              run: pnpm install
+
+            - name: Lint
+              run: pnpm lint
+
+            - name: Build
+              run: pnpm build
+
+            - name: Set final commit status
+              uses: myrotvorets/set-commit-status-action@master
+              if: always()
+              with:
+                  status: ${{ job.status }}
