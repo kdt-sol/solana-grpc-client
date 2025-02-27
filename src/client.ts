@@ -1,10 +1,10 @@
 import type { ChannelOptions, Metadata } from '@grpc/grpc-js'
-import { notNullish } from '@kdt310722/utils/common'
+import { isUndefined, notNullish } from '@kdt310722/utils/common'
 import type { BinaryReader } from '@bufbuild/protobuf/wire'
 import { type MetadataObject, StreamIterator, type StreamIteratorOptions, createCredential, createMetadataInterceptor, parseUrl } from './utils'
 import { EventPublisherClient, type StreamResponse } from './proto/generated/publisher'
 import { Empty } from './proto/generated/google/protobuf/empty'
-import { SlotStatusEvent, TransactionEvent, UpdateAccountEvent } from './proto/generated/events'
+import { MessageWrapper } from './proto/generated/events'
 
 export interface ThorStreamClientOptions extends ChannelOptions {
     token?: string
@@ -41,22 +41,36 @@ export class ThorStreamClient {
     }
 
     public subscribeTransactions(options: SubscribeOptions = {}) {
-        return this.subscribe({ method: 'subscribeToTransactions', request: Empty, dataFormatter: TransactionEvent, ...options })
+        return this.subscribe({ method: 'subscribeToTransactions', request: Empty, dataFormatter: this.getDataFormatter('transaction'), ...options })
     }
 
     public subscribeAccountUpdates(options: SubscribeOptions = {}) {
-        return this.subscribe({ method: 'subscribeToAccountUpdates', request: Empty, dataFormatter: UpdateAccountEvent, ...options })
+        return this.subscribe({ method: 'subscribeToAccountUpdates', request: Empty, dataFormatter: this.getDataFormatter('account'), ...options })
     }
 
     public subscribeSlotStatus(options: SubscribeOptions = {}) {
-        return this.subscribe({ method: 'subscribeToSlotStatus', request: Empty, dataFormatter: SlotStatusEvent, ...options })
+        return this.subscribe({ method: 'subscribeToSlotStatus', request: Empty, dataFormatter: this.getDataFormatter('slot'), ...options })
     }
 
     public subscribeWalletTransactions(addresses: string[], options: SubscribeOptions = {}) {
-        return this.subscribe({ method: 'subscribeToWalletTransactions', request: { walletAddress: addresses }, dataFormatter: TransactionEvent, ...options })
+        return this.subscribe({ method: 'subscribeToWalletTransactions', request: { walletAddress: addresses }, dataFormatter: this.getDataFormatter('transaction'), ...options })
     }
 
     protected subscribe<TMethod extends SubscribeMethod, TData>({ method, request, metadata, dataFormatter, ...options }: SubscribeParams<TMethod, TData>) {
         return new StreamIterator(this.grpc[method](request as any, metadata), { ...options, dataFormatter: ({ data }: StreamResponse) => dataFormatter.decode(data) })
+    }
+
+    protected getDataFormatter<TResult extends ReturnType<typeof MessageWrapper['decode']>, TKey extends keyof TResult>(key: TKey) {
+        const decode = (data: Buffer) => {
+            const result = MessageWrapper.decode(data)
+
+            if (isUndefined(result[key as string])) {
+                throw Object.assign(new Error('Invalid data'), { result })
+            }
+
+            return result[key as string] as NonNullable<TResult[TKey]>
+        }
+
+        return { decode }
     }
 }
