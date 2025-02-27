@@ -1,6 +1,7 @@
 import type { ClientReadableStream } from '@grpc/grpc-js'
 import { type Fn, tap } from '@kdt310722/utils/function'
 import { notNullish } from '@kdt310722/utils/common'
+import { isString } from '@kdt310722/utils/string'
 
 export const ERROR_RESULT = Symbol('ERROR_RESULT')
 
@@ -162,7 +163,7 @@ export class StreamIterator<TResponse, TData = TResponse> implements AsyncIterab
     }
 
     protected isCancelledError(error: unknown) {
-        return error instanceof Error && 'code' in error && 'details' in error && error.code === 1 && error.details === 'Cancelled on client'
+        return error instanceof Error && 'details' in error && isString(error.details) && error.details.includes('Cancelled')
     }
 
     protected isErrorResult(result: ErrorResult | IteratorResult<TData>): result is ErrorResult {
