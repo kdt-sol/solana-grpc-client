@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v0.0.3
+
+[compare changes](https://github.com/kdt-sol/thorstream-client/compare/v0.0.2...v0.0.3)
+
+### 🩹 Fixes
+
+- Check cancelled error ([30213d6](https://github.com/kdt-sol/thorstream-client/commit/30213d6))
+
+### ❤️ Contributors
+
+- Diep Dang <kdt310722@gmail.com>
+
 ## v0.0.2
 
 [compare changes](https://github.com/kdt-sol/thorstream-client/compare/v0.0.1...v0.0.2)
