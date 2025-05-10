@@ -63,3 +63,4 @@ src/test.ts
 
 # Generated files
 src/proto/generated
+protos
