@@ -1,0 +1,6 @@
+[submodule "protos/jetstream"]
+	path = protos/jetstream
+	url = https://github.com/orbitflare/jetstream-client-example.git
+[submodule "protos/yellowstone"]
+	path = protos/yellowstone
+	url = https://github.com/rpcpool/yellowstone-grpc.git

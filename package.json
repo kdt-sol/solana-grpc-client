@@ -1,16 +1,16 @@
 {
-    "name": "@kdt-sol/thorstream-client",
+    "name": "@kdt-sol/solana-grpc-client",
     "type": "module",
     "version": "0.0.3",
     "packageManager": "pnpm@10.10.0",
-    "description": "ThorStreamer Typescript Client",
+    "description": "Typescript client implements for multiple Solana GRPC services (YellowStone Geyser GRPC, Orbit JetStream,...)",
     "author": "Diep Dang <kdt310722@gmail.com>",
     "license": "MIT",
-    "homepage": "https://github.com/kdt-sol/thorstream-client",
-    "repository": "github:kdt-sol/thorstream-client",
+    "homepage": "https://github.com/kdt-sol/solana-grpc-client",
+    "repository": "github:kdt-sol/solana-grpc-client",
     "bugs": {
         "email": "kdt310722@gmail.com",
-        "url": "https://github.com/kdt-sol/thorstream-client/issues"
+        "url": "https://github.com/kdt-sol/solana-grpc-client/issues"
     },
     "sideEffects": false,
     "exports": {
@@ -18,6 +18,26 @@
             "types": "./dist/types/index.d.ts",
             "require": "./dist/index.cjs",
             "default": "./dist/index.js"
+        },
+        "./jetstream": {
+            "types": "./dist/types/clients/jetstream/index.d.ts",
+            "require": "./dist/clients/jetstream/index.cjs",
+            "default": "./dist/clients/jetstream/index.js"
+        },
+        "./clients/jetstream": {
+            "types": "./dist/types/clients/jetstream/index.d.ts",
+            "require": "./dist/clients/jetstream/index.cjs",
+            "default": "./dist/clients/jetstream/index.js"
+        },
+        "./yellowstone": {
+            "types": "./dist/types/clients/yellowstone/index.d.ts",
+            "require": "./dist/clients/yellowstone/index.cjs",
+            "default": "./dist/clients/yellowstone/index.js"
+        },
+        "./clients/yellowstone": {
+            "types": "./dist/types/clients/yellowstone/index.d.ts",
+            "require": "./dist/clients/yellowstone/index.cjs",
+            "default": "./dist/clients/yellowstone/index.js"
         }
     },
     "main": "dist/index.js",
@@ -30,8 +50,10 @@
         "access": "public"
     },
     "scripts": {
-        "proto:generate": "rm -rf ./src/proto/generated && mkdir -p ./src/proto/generated && protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_opt=outputServices=grpc-js,forceLong=bigint,env=node,esModuleInterop=true,exportCommonSymbols=false,useAbortSignal=true,useAsyncIterable=true --experimental_allow_proto3_optional --ts_proto_out=./src/proto/generated --proto_path=./src/proto ./src/proto/*.proto",
         "build": "pnpm run proto:generate && rimraf dist && tsup && tsc --project ./tsconfig.build.json",
+        "proto:generate": "pnpm run proto:generate:yellowstone && pnpm run proto:generate:jetstream",
+        "proto:generate:yellowstone": "rm -rf ./src/clients/yellowstone/generated && mkdir -p ./src/clients/yellowstone/generated && protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_opt=outputServices=grpc-js,forceLong=bigint,env=node,esModuleInterop=true,exportCommonSymbols=false,useAbortSignal=true,useAsyncIterable=true --experimental_allow_proto3_optional --ts_proto_out=./src/clients/yellowstone/generated --proto_path=./protos/yellowstone/yellowstone-grpc-proto/proto ./protos/yellowstone/yellowstone-grpc-proto/proto/*.proto",
+        "proto:generate:jetstream": "rm -rf ./src/clients/jetstream/generated && mkdir -p ./src/clients/jetstream/generated && protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_opt=outputServices=grpc-js,forceLong=bigint,env=node,esModuleInterop=true,exportCommonSymbols=false,useAbortSignal=true,useAsyncIterable=true --experimental_allow_proto3_optional --ts_proto_out=./src/clients/jetstream/generated --proto_path=./protos/jetstream/jetstream_protos/protos ./protos/jetstream/jetstream_protos/protos/*.proto",
         "release": "tsx scripts/release.ts && changelogen gh release && pnpm publish",
         "up": "ncu -i",
         "lint": "eslint .",

@@ -44,11 +44,11 @@ export class StreamIterator<TResponse, TData = TResponse> implements AsyncIterab
         return this
     }
 
-    public close() {
+    public async close() {
         try {
-            this.stream.cancel()
+            await Promise.resolve().then(() => this.stream.cancel())
         } catch {
-            this.stream.destroy()
+            await Promise.resolve().then(() => this.stream.destroy())
         }
     }
 
@@ -89,7 +89,8 @@ export class StreamIterator<TResponse, TData = TResponse> implements AsyncIterab
     }
 
     public async return(value?: TData): Promise<IteratorResult<TData>> {
-        this.close()
+        await this.close()
+
         this.messageQueue.length = 0
         this.resolvers.length = 0
 
@@ -136,7 +137,7 @@ export class StreamIterator<TResponse, TData = TResponse> implements AsyncIterab
     }
 
     protected handleEnd() {
-        this.close()
+        this.close().catch(() => this.stream.destroy())
     }
 
     protected handleAbort() {

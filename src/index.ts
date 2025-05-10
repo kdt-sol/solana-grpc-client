@@ -1,6 +1,3 @@
-export * from './client'
-export * from './proto/generated/events'
-export * from './proto/generated/publisher'
+export * from './clients'
 export * from './utils'
 export * from './errors'
-export * from './constants'

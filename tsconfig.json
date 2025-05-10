@@ -1,4 +1,9 @@
 {
     "extends": "@kdt310722/tsconfig",
-    "include": ["**/*.ts"]
+    "include": [
+        "**/*.ts"
+    ],
+    "exclude": [
+        "protos"
+    ]
 }
