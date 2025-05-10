@@ -1,14 +1,15 @@
-import type { ChannelOptions, Metadata } from '@grpc/grpc-js'
-import { isUndefined, notNullish } from '@kdt310722/utils/common'
+import type { Metadata } from '@grpc/grpc-js'
+import { isUndefined } from '@kdt310722/utils/common'
 import type { BinaryReader } from '@bufbuild/protobuf/wire'
-import { type MetadataObject, StreamIterator, type StreamIteratorOptions, createCredential, createMetadataInterceptor, parseUrl } from './utils'
+import { type CreateGrpcClientOptions, StreamIterator, type StreamIteratorOptions, createGrpcClient } from './utils'
 import { EventPublisherClient, type StreamResponse } from './proto/generated/publisher'
 import { Empty } from './proto/generated/google/protobuf/empty'
 import { MessageWrapper } from './proto/generated/events'
+import { THOR_MAX_ADDRESSES_PER_SUBSCRIPTION } from './constants'
+import { InvalidInputError, MessageDecodingError } from './errors'
 
-export interface ThorStreamClientOptions extends ChannelOptions {
-    token?: string
-    metadata?: MetadataObject
+export interface ThorStreamClientOptions extends CreateGrpcClientOptions {
+    maxWalletAddresses?: number
 }
 
 export interface SubscribeOptions extends Omit<StreamIteratorOptions<unknown, unknown>, 'dataFormatter'> {
@@ -28,16 +29,12 @@ export interface SubscribeParams<TMethod extends SubscribeMethod, TData> extends
 }
 
 export class ThorStreamClient {
-    public readonly address: string
     public readonly grpc: EventPublisherClient
+    public readonly maxWalletAddresses: number
 
-    public constructor(url: string, options: ThorStreamClientOptions = {}) {
-        const { metadata = {}, token, ...channelOptions } = options
-        const { host, port, isInsecure } = parseUrl(url)
-        const interceptor = createMetadataInterceptor({ ...(notNullish(token) ? { authorization: token } : {}), ...metadata })
-
-        this.address = `${host}:${port}`
-        this.grpc = new EventPublisherClient(this.address, createCredential(isInsecure), { ...channelOptions, interceptors: [interceptor] })
+    public constructor(url: string, { maxWalletAddresses = THOR_MAX_ADDRESSES_PER_SUBSCRIPTION, ...clientOptions }: ThorStreamClientOptions = {}) {
+        this.maxWalletAddresses = maxWalletAddresses
+        this.grpc = createGrpcClient(EventPublisherClient, url, clientOptions)
     }
 
     public subscribeTransactions(options: SubscribeOptions = {}) {
@@ -53,6 +50,10 @@ export class ThorStreamClient {
     }
 
     public subscribeWalletTransactions(addresses: string[], options: SubscribeOptions = {}) {
+        if (addresses.length === 0 || addresses.length > this.maxWalletAddresses) {
+            throw new InvalidInputError(`Number of wallet addresses must be between 1 and ${this.maxWalletAddresses}. Received: ${addresses.length}`).withInputName('addresses').withInputValue(addresses.length)
+        }
+
         return this.subscribe({ method: 'subscribeToWalletTransactions', request: { walletAddress: addresses }, dataFormatter: this.getDataFormatter('transaction'), ...options })
     }
 
@@ -65,7 +66,7 @@ export class ThorStreamClient {
             const result = MessageWrapper.decode(data)
 
             if (isUndefined(result[key as string])) {
-                throw Object.assign(new Error('Invalid data'), { result })
+                throw new MessageDecodingError(`Failed to decode message: key '${String(key)}' not found in MessageWrapper.`).withRawData(data).withExpectedType(`MessageWrapper with key '${String(key)}'`)
             }
 
             return result[key as string] as NonNullable<TResult[TKey]>
