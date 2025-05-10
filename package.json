@@ -41,21 +41,21 @@
         "prepublishOnly": "pnpm build"
     },
     "dependencies": {
-        "@bufbuild/protobuf": "^2.2.5",
+        "@bufbuild/protobuf": "^2.3.0",
         "@grpc/grpc-js": "^1.13.3",
         "@kdt310722/utils": "^0.0.17"
     },
     "devDependencies": {
-        "@commitlint/cli": "^19.8.0",
-        "@commitlint/config-conventional": "^19.8.0",
+        "@commitlint/cli": "^19.8.1",
+        "@commitlint/config-conventional": "^19.8.1",
         "@kdt310722/eslint-config": "^0.1.9",
         "@kdt310722/tsconfig": "^1.0.0",
         "@swc/core": "^1.11.24",
-        "@types/node": "^22.15.3",
+        "@types/node": "^22.15.17",
         "changelogen": "^0.6.1",
-        "eslint": "^9.25.1",
-        "execa": "^9.5.2",
-        "lint-staged": "^15.5.1",
+        "eslint": "^9.26.0",
+        "execa": "^9.5.3",
+        "lint-staged": "^15.5.2",
         "npm-check-updates": "^18.0.1",
         "only-allow": "^1.2.1",
         "rimraf": "^6.0.1",
