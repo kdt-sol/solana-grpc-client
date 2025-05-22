@@ -38,6 +38,16 @@
             "types": "./dist/types/clients/yellowstone/index.d.ts",
             "require": "./dist/clients/yellowstone/index.cjs",
             "default": "./dist/clients/yellowstone/index.js"
+        },
+        "./thor-streamer": {
+            "types": "./dist/types/clients/thor-streamer/index.d.ts",
+            "require": "./dist/clients/thor-streamer/index.cjs",
+            "default": "./dist/clients/thor-streamer/index.js"
+        },
+        "./clients/thor-streamer": {
+            "types": "./dist/types/clients/thor-streamer/index.d.ts",
+            "require": "./dist/clients/thor-streamer/index.cjs",
+            "default": "./dist/clients/thor-streamer/index.js"
         }
     },
     "main": "dist/index.js",
@@ -51,9 +61,10 @@
     },
     "scripts": {
         "build": "pnpm run proto:generate && rimraf dist && tsup && tsc --project ./tsconfig.build.json",
-        "proto:generate": "pnpm run proto:generate:yellowstone && pnpm run proto:generate:jetstream",
+        "proto:generate": "pnpm run proto:generate:yellowstone && pnpm run proto:generate:jetstream && pnpm run proto:generate:thor-streamer",
         "proto:generate:yellowstone": "rm -rf ./src/clients/yellowstone/generated && mkdir -p ./src/clients/yellowstone/generated && protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_opt=outputServices=grpc-js,forceLong=bigint,env=node,esModuleInterop=true,exportCommonSymbols=false,useAbortSignal=true,useAsyncIterable=true --experimental_allow_proto3_optional --ts_proto_out=./src/clients/yellowstone/generated --proto_path=./protos/yellowstone/yellowstone-grpc-proto/proto ./protos/yellowstone/yellowstone-grpc-proto/proto/*.proto",
         "proto:generate:jetstream": "rm -rf ./src/clients/jetstream/generated && mkdir -p ./src/clients/jetstream/generated && protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_opt=outputServices=grpc-js,forceLong=bigint,env=node,esModuleInterop=true,exportCommonSymbols=false,useAbortSignal=true,useAsyncIterable=true --experimental_allow_proto3_optional --ts_proto_out=./src/clients/jetstream/generated --proto_path=./protos/jetstream/jetstream_protos/protos ./protos/jetstream/jetstream_protos/protos/*.proto",
+        "proto:generate:thor-streamer": "rm -rf ./src/clients/thor-streamer/generated && mkdir -p ./src/clients/thor-streamer/generated && protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_opt=outputServices=grpc-js,forceLong=bigint,env=node,esModuleInterop=true,exportCommonSymbols=false,useAbortSignal=true,useAsyncIterable=true --experimental_allow_proto3_optional --ts_proto_out=./src/clients/thor-streamer/generated --proto_path=./protos/thor-streamer/proto ./protos/thor-streamer/proto/*.proto",
         "release": "tsx scripts/release.ts && changelogen gh release && pnpm publish",
         "up": "ncu -i",
         "lint": "eslint .",

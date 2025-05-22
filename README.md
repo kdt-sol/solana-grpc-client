@@ -13,7 +13,7 @@ A modern TypeScript library for connecting to and interacting with various Solan
 ## ✨ Key Features
 
 - 🔄 **Streaming API** - Full support for bidirectional, client-streaming, and server-streaming data flows
-- 🔌 **Multiple Services** - Support for both YellowStone Geyser GRPC and Orbit JetStream
+- 🔌 **Multiple Services** - Support for YellowStone Geyser GRPC, Orbit JetStream, and ThorStreamer
 - 📦 **Dual Format** - Supports both ESM and CommonJS
 - 🛡️ **TypeScript First** - Complete type definitions and excellent IDE experience
 - ⚡ **High Performance** - Optimized for performance with efficient stream processing
@@ -46,18 +46,20 @@ pnpm add @kdt-sol/solana-grpc-client
 import * as solanaGrpcClient from '@kdt-sol/solana-grpc-client'
 
 // Import specific clients
-import { yellowstone, jetstream } from '@kdt-sol/solana-grpc-client'
+import { yellowstone, jetstream, thorStreamer } from '@kdt-sol/solana-grpc-client'
 
 // Import specific modules directly
 import * as yellowstone from '@kdt-sol/solana-grpc-client/yellowstone'
 import * as jetstream from '@kdt-sol/solana-grpc-client/jetstream'
+import * as thorStreamer from '@kdt-sol/solana-grpc-client/thor-streamer'
 
 // Alternative paths
 import * as yellowstone from '@kdt-sol/solana-grpc-client/clients/yellowstone'
 import * as jetstream from '@kdt-sol/solana-grpc-client/clients/jetstream'
+import * as thorStreamer from '@kdt-sol/solana-grpc-client/clients/thor-streamer'
 
 // CommonJS
-const { yellowstone, jetstream } = require('@kdt-sol/solana-grpc-client')
+const { yellowstone, jetstream, thorStreamer } = require('@kdt-sol/solana-grpc-client')
 ```
 
 ## 🚀 Usage Guide
@@ -204,6 +206,65 @@ main().catch(console.error)
 subscribeWithReconnection().catch(console.error)
 ```
 
+### ThorStreamer
+
+```typescript
+import { thorStreamer } from '@kdt-sol/solana-grpc-client'
+
+async function main() {
+    // Create client connecting to ThorStreamer endpoint
+    const client = new thorStreamer.ThorStreamerClient('https://your-thorstreamer-endpoint.com', {
+        token: 'your-auth-token', // Optional, will be sent with 'authorization' metadata
+    })
+
+    // Subscribe to transaction events
+    const transactionStream = await client.subscribeToTransactions()
+
+    // Process transaction events
+    for await (const transaction of transactionStream) {
+        console.log('Transaction slot:', transaction.slot.toString())
+        console.log('Transaction signature:', transaction.signature.toString('hex'))
+
+        // Process transaction data
+        if (transaction.transaction) {
+            console.log('Transaction details:', transaction.transaction)
+        }
+    }
+
+    // Subscribe to account updates
+    const accountStream = await client.subscribeToAccountUpdates()
+
+    // Process account updates
+    for await (const accountUpdate of accountStream) {
+        console.log('Account update slot:', accountUpdate.slot.toString())
+        console.log('Account pubkey:', accountUpdate.pubkey.toString('hex'))
+        console.log('Account owner:', accountUpdate.owner.toString('hex'))
+        console.log('Account lamports:', accountUpdate.lamports.toString())
+    }
+
+    // Subscribe to slot status
+    const slotStream = await client.subscribeToSlotStatus()
+
+    // Process slot updates
+    for await (const slotStatus of slotStream) {
+        console.log('Slot:', slotStatus.slot.toString())
+        console.log('Parent slot:', slotStatus.parent.toString())
+        console.log('Status:', slotStatus.status)
+    }
+
+    // Subscribe to specific wallet transactions
+    const walletAddresses = ['wallet1pubkey', 'wallet2pubkey']
+    const walletStream = await client.subscribeToWalletTransactions(walletAddresses)
+
+    // Process wallet transactions
+    for await (const transaction of walletStream) {
+        console.log('Wallet transaction:', transaction)
+    }
+}
+
+main().catch(console.error)
+```
+
 ### Advanced Configuration
 
 ```typescript
@@ -282,9 +343,16 @@ main().catch(console.error)
     - `ping(request)`: Check connection
 
 - **OrbitJetstreamClient**: Client for Orbit JetStream API
+
     - `subscribe()`: Subscribe to updates from JetStream
     - `ping(request)`: Check connection
     - `getVersion(request)`: Get version information
+
+- **ThorStreamerClient**: Client for ThorStreamer API
+    - `subscribeToTransactions(metadata?)`: Subscribe to transaction events
+    - `subscribeToAccountUpdates(metadata?)`: Subscribe to account update events
+    - `subscribeToSlotStatus(metadata?)`: Subscribe to slot status events
+    - `subscribeToWalletTransactions(walletAddresses, metadata?)`: Subscribe to transactions for specific wallets
 
 ### Utilities
 
