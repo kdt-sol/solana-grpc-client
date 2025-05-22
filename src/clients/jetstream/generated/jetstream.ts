@@ -139,6 +139,61 @@ export interface CompiledInstruction {
   data: Buffer;
 }
 
+/** ============= Parsed Instruction Messages ============= */
+export interface SubscribeParsedRequest {
+  ping?: SubscribeRequestPing | undefined;
+}
+
+export interface Instruction {
+  initialize?: Initialize | undefined;
+  setParams?: SetParams | undefined;
+  create?: Create | undefined;
+  buy?: Buy | undefined;
+  sell?: Sell | undefined;
+  withdraw?: Withdraw | undefined;
+}
+
+export interface Initialize {
+}
+
+export interface SetParams {
+  feeRecipient: Buffer;
+  initialVirtualTokenReserves: bigint;
+  initialVirtualSolReserves: bigint;
+  initialRealTokenReserves: bigint;
+  tokenTotalSupply: bigint;
+  feeBasisPoints: bigint;
+}
+
+export interface Create {
+  name: string;
+  symbol: string;
+  uri: string;
+}
+
+export interface Buy {
+  amount: bigint;
+  maxSolCost: bigint;
+}
+
+export interface Sell {
+  amount: bigint;
+  minSolOutput: bigint;
+}
+
+export interface Withdraw {
+}
+
+/** For SubscribeParsed RPC */
+export interface SubscribeUpdateParsedTransaction {
+  signature: Buffer;
+  slot: bigint;
+  account: SubscribeUpdateAccount | undefined;
+  recentBlockhash: Buffer;
+  signatures: Buffer[];
+  instructions: Instruction[];
+}
+
 /** ============= Non-streaming Methods ============= */
 export interface PingRequest {
   count: number;
@@ -2722,6 +2777,1185 @@ export const CompiledInstruction: MessageFns<CompiledInstruction> = {
   },
 };
 
+function createBaseSubscribeParsedRequest(): SubscribeParsedRequest {
+  return { ping: undefined };
+}
+
+export const SubscribeParsedRequest: MessageFns<SubscribeParsedRequest> = {
+  encode(message: SubscribeParsedRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.ping !== undefined) {
+      SubscribeRequestPing.encode(message.ping, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SubscribeParsedRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSubscribeParsedRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.ping = SubscribeRequestPing.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<SubscribeParsedRequest, Uint8Array>
+  async *encodeTransform(
+    source:
+      | AsyncIterable<SubscribeParsedRequest | SubscribeParsedRequest[]>
+      | Iterable<SubscribeParsedRequest | SubscribeParsedRequest[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [SubscribeParsedRequest.encode(p).finish()];
+        }
+      } else {
+        yield* [SubscribeParsedRequest.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, SubscribeParsedRequest>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<SubscribeParsedRequest> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [SubscribeParsedRequest.decode(p)];
+        }
+      } else {
+        yield* [SubscribeParsedRequest.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): SubscribeParsedRequest {
+    return { ping: isSet(object.ping) ? SubscribeRequestPing.fromJSON(object.ping) : undefined };
+  },
+
+  toJSON(message: SubscribeParsedRequest): unknown {
+    const obj: any = {};
+    if (message.ping !== undefined) {
+      obj.ping = SubscribeRequestPing.toJSON(message.ping);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SubscribeParsedRequest>, I>>(base?: I): SubscribeParsedRequest {
+    return SubscribeParsedRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SubscribeParsedRequest>, I>>(object: I): SubscribeParsedRequest {
+    const message = createBaseSubscribeParsedRequest();
+    message.ping = (object.ping !== undefined && object.ping !== null)
+      ? SubscribeRequestPing.fromPartial(object.ping)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseInstruction(): Instruction {
+  return {
+    initialize: undefined,
+    setParams: undefined,
+    create: undefined,
+    buy: undefined,
+    sell: undefined,
+    withdraw: undefined,
+  };
+}
+
+export const Instruction: MessageFns<Instruction> = {
+  encode(message: Instruction, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.initialize !== undefined) {
+      Initialize.encode(message.initialize, writer.uint32(10).fork()).join();
+    }
+    if (message.setParams !== undefined) {
+      SetParams.encode(message.setParams, writer.uint32(18).fork()).join();
+    }
+    if (message.create !== undefined) {
+      Create.encode(message.create, writer.uint32(26).fork()).join();
+    }
+    if (message.buy !== undefined) {
+      Buy.encode(message.buy, writer.uint32(34).fork()).join();
+    }
+    if (message.sell !== undefined) {
+      Sell.encode(message.sell, writer.uint32(42).fork()).join();
+    }
+    if (message.withdraw !== undefined) {
+      Withdraw.encode(message.withdraw, writer.uint32(50).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Instruction {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseInstruction();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.initialize = Initialize.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.setParams = SetParams.decode(reader, reader.uint32());
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.create = Create.decode(reader, reader.uint32());
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.buy = Buy.decode(reader, reader.uint32());
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.sell = Sell.decode(reader, reader.uint32());
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.withdraw = Withdraw.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<Instruction, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<Instruction | Instruction[]> | Iterable<Instruction | Instruction[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Instruction.encode(p).finish()];
+        }
+      } else {
+        yield* [Instruction.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, Instruction>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<Instruction> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Instruction.decode(p)];
+        }
+      } else {
+        yield* [Instruction.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): Instruction {
+    return {
+      initialize: isSet(object.initialize) ? Initialize.fromJSON(object.initialize) : undefined,
+      setParams: isSet(object.setParams) ? SetParams.fromJSON(object.setParams) : undefined,
+      create: isSet(object.create) ? Create.fromJSON(object.create) : undefined,
+      buy: isSet(object.buy) ? Buy.fromJSON(object.buy) : undefined,
+      sell: isSet(object.sell) ? Sell.fromJSON(object.sell) : undefined,
+      withdraw: isSet(object.withdraw) ? Withdraw.fromJSON(object.withdraw) : undefined,
+    };
+  },
+
+  toJSON(message: Instruction): unknown {
+    const obj: any = {};
+    if (message.initialize !== undefined) {
+      obj.initialize = Initialize.toJSON(message.initialize);
+    }
+    if (message.setParams !== undefined) {
+      obj.setParams = SetParams.toJSON(message.setParams);
+    }
+    if (message.create !== undefined) {
+      obj.create = Create.toJSON(message.create);
+    }
+    if (message.buy !== undefined) {
+      obj.buy = Buy.toJSON(message.buy);
+    }
+    if (message.sell !== undefined) {
+      obj.sell = Sell.toJSON(message.sell);
+    }
+    if (message.withdraw !== undefined) {
+      obj.withdraw = Withdraw.toJSON(message.withdraw);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Instruction>, I>>(base?: I): Instruction {
+    return Instruction.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Instruction>, I>>(object: I): Instruction {
+    const message = createBaseInstruction();
+    message.initialize = (object.initialize !== undefined && object.initialize !== null)
+      ? Initialize.fromPartial(object.initialize)
+      : undefined;
+    message.setParams = (object.setParams !== undefined && object.setParams !== null)
+      ? SetParams.fromPartial(object.setParams)
+      : undefined;
+    message.create = (object.create !== undefined && object.create !== null)
+      ? Create.fromPartial(object.create)
+      : undefined;
+    message.buy = (object.buy !== undefined && object.buy !== null) ? Buy.fromPartial(object.buy) : undefined;
+    message.sell = (object.sell !== undefined && object.sell !== null) ? Sell.fromPartial(object.sell) : undefined;
+    message.withdraw = (object.withdraw !== undefined && object.withdraw !== null)
+      ? Withdraw.fromPartial(object.withdraw)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseInitialize(): Initialize {
+  return {};
+}
+
+export const Initialize: MessageFns<Initialize> = {
+  encode(_: Initialize, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Initialize {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseInitialize();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<Initialize, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<Initialize | Initialize[]> | Iterable<Initialize | Initialize[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Initialize.encode(p).finish()];
+        }
+      } else {
+        yield* [Initialize.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, Initialize>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<Initialize> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Initialize.decode(p)];
+        }
+      } else {
+        yield* [Initialize.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(_: any): Initialize {
+    return {};
+  },
+
+  toJSON(_: Initialize): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Initialize>, I>>(base?: I): Initialize {
+    return Initialize.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Initialize>, I>>(_: I): Initialize {
+    const message = createBaseInitialize();
+    return message;
+  },
+};
+
+function createBaseSetParams(): SetParams {
+  return {
+    feeRecipient: Buffer.alloc(0),
+    initialVirtualTokenReserves: 0n,
+    initialVirtualSolReserves: 0n,
+    initialRealTokenReserves: 0n,
+    tokenTotalSupply: 0n,
+    feeBasisPoints: 0n,
+  };
+}
+
+export const SetParams: MessageFns<SetParams> = {
+  encode(message: SetParams, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.feeRecipient.length !== 0) {
+      writer.uint32(10).bytes(message.feeRecipient);
+    }
+    if (message.initialVirtualTokenReserves !== 0n) {
+      if (BigInt.asUintN(64, message.initialVirtualTokenReserves) !== message.initialVirtualTokenReserves) {
+        throw new globalThis.Error(
+          "value provided for field message.initialVirtualTokenReserves of type uint64 too large",
+        );
+      }
+      writer.uint32(16).uint64(message.initialVirtualTokenReserves);
+    }
+    if (message.initialVirtualSolReserves !== 0n) {
+      if (BigInt.asUintN(64, message.initialVirtualSolReserves) !== message.initialVirtualSolReserves) {
+        throw new globalThis.Error(
+          "value provided for field message.initialVirtualSolReserves of type uint64 too large",
+        );
+      }
+      writer.uint32(24).uint64(message.initialVirtualSolReserves);
+    }
+    if (message.initialRealTokenReserves !== 0n) {
+      if (BigInt.asUintN(64, message.initialRealTokenReserves) !== message.initialRealTokenReserves) {
+        throw new globalThis.Error(
+          "value provided for field message.initialRealTokenReserves of type uint64 too large",
+        );
+      }
+      writer.uint32(32).uint64(message.initialRealTokenReserves);
+    }
+    if (message.tokenTotalSupply !== 0n) {
+      if (BigInt.asUintN(64, message.tokenTotalSupply) !== message.tokenTotalSupply) {
+        throw new globalThis.Error("value provided for field message.tokenTotalSupply of type uint64 too large");
+      }
+      writer.uint32(40).uint64(message.tokenTotalSupply);
+    }
+    if (message.feeBasisPoints !== 0n) {
+      if (BigInt.asUintN(64, message.feeBasisPoints) !== message.feeBasisPoints) {
+        throw new globalThis.Error("value provided for field message.feeBasisPoints of type uint64 too large");
+      }
+      writer.uint32(48).uint64(message.feeBasisPoints);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SetParams {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSetParams();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.feeRecipient = Buffer.from(reader.bytes());
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.initialVirtualTokenReserves = reader.uint64() as bigint;
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.initialVirtualSolReserves = reader.uint64() as bigint;
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.initialRealTokenReserves = reader.uint64() as bigint;
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.tokenTotalSupply = reader.uint64() as bigint;
+          continue;
+        }
+        case 6: {
+          if (tag !== 48) {
+            break;
+          }
+
+          message.feeBasisPoints = reader.uint64() as bigint;
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<SetParams, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<SetParams | SetParams[]> | Iterable<SetParams | SetParams[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [SetParams.encode(p).finish()];
+        }
+      } else {
+        yield* [SetParams.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, SetParams>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<SetParams> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [SetParams.decode(p)];
+        }
+      } else {
+        yield* [SetParams.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): SetParams {
+    return {
+      feeRecipient: isSet(object.feeRecipient) ? Buffer.from(bytesFromBase64(object.feeRecipient)) : Buffer.alloc(0),
+      initialVirtualTokenReserves: isSet(object.initialVirtualTokenReserves)
+        ? BigInt(object.initialVirtualTokenReserves)
+        : 0n,
+      initialVirtualSolReserves: isSet(object.initialVirtualSolReserves)
+        ? BigInt(object.initialVirtualSolReserves)
+        : 0n,
+      initialRealTokenReserves: isSet(object.initialRealTokenReserves) ? BigInt(object.initialRealTokenReserves) : 0n,
+      tokenTotalSupply: isSet(object.tokenTotalSupply) ? BigInt(object.tokenTotalSupply) : 0n,
+      feeBasisPoints: isSet(object.feeBasisPoints) ? BigInt(object.feeBasisPoints) : 0n,
+    };
+  },
+
+  toJSON(message: SetParams): unknown {
+    const obj: any = {};
+    if (message.feeRecipient.length !== 0) {
+      obj.feeRecipient = base64FromBytes(message.feeRecipient);
+    }
+    if (message.initialVirtualTokenReserves !== 0n) {
+      obj.initialVirtualTokenReserves = message.initialVirtualTokenReserves.toString();
+    }
+    if (message.initialVirtualSolReserves !== 0n) {
+      obj.initialVirtualSolReserves = message.initialVirtualSolReserves.toString();
+    }
+    if (message.initialRealTokenReserves !== 0n) {
+      obj.initialRealTokenReserves = message.initialRealTokenReserves.toString();
+    }
+    if (message.tokenTotalSupply !== 0n) {
+      obj.tokenTotalSupply = message.tokenTotalSupply.toString();
+    }
+    if (message.feeBasisPoints !== 0n) {
+      obj.feeBasisPoints = message.feeBasisPoints.toString();
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SetParams>, I>>(base?: I): SetParams {
+    return SetParams.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SetParams>, I>>(object: I): SetParams {
+    const message = createBaseSetParams();
+    message.feeRecipient = object.feeRecipient ?? Buffer.alloc(0);
+    message.initialVirtualTokenReserves = object.initialVirtualTokenReserves ?? 0n;
+    message.initialVirtualSolReserves = object.initialVirtualSolReserves ?? 0n;
+    message.initialRealTokenReserves = object.initialRealTokenReserves ?? 0n;
+    message.tokenTotalSupply = object.tokenTotalSupply ?? 0n;
+    message.feeBasisPoints = object.feeBasisPoints ?? 0n;
+    return message;
+  },
+};
+
+function createBaseCreate(): Create {
+  return { name: "", symbol: "", uri: "" };
+}
+
+export const Create: MessageFns<Create> = {
+  encode(message: Create, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.symbol !== "") {
+      writer.uint32(18).string(message.symbol);
+    }
+    if (message.uri !== "") {
+      writer.uint32(26).string(message.uri);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Create {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreate();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.symbol = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.uri = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<Create, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<Create | Create[]> | Iterable<Create | Create[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Create.encode(p).finish()];
+        }
+      } else {
+        yield* [Create.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, Create>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<Create> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Create.decode(p)];
+        }
+      } else {
+        yield* [Create.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): Create {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      symbol: isSet(object.symbol) ? globalThis.String(object.symbol) : "",
+      uri: isSet(object.uri) ? globalThis.String(object.uri) : "",
+    };
+  },
+
+  toJSON(message: Create): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.symbol !== "") {
+      obj.symbol = message.symbol;
+    }
+    if (message.uri !== "") {
+      obj.uri = message.uri;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Create>, I>>(base?: I): Create {
+    return Create.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Create>, I>>(object: I): Create {
+    const message = createBaseCreate();
+    message.name = object.name ?? "";
+    message.symbol = object.symbol ?? "";
+    message.uri = object.uri ?? "";
+    return message;
+  },
+};
+
+function createBaseBuy(): Buy {
+  return { amount: 0n, maxSolCost: 0n };
+}
+
+export const Buy: MessageFns<Buy> = {
+  encode(message: Buy, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.amount !== 0n) {
+      if (BigInt.asUintN(64, message.amount) !== message.amount) {
+        throw new globalThis.Error("value provided for field message.amount of type uint64 too large");
+      }
+      writer.uint32(8).uint64(message.amount);
+    }
+    if (message.maxSolCost !== 0n) {
+      if (BigInt.asUintN(64, message.maxSolCost) !== message.maxSolCost) {
+        throw new globalThis.Error("value provided for field message.maxSolCost of type uint64 too large");
+      }
+      writer.uint32(16).uint64(message.maxSolCost);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Buy {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBuy();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.amount = reader.uint64() as bigint;
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.maxSolCost = reader.uint64() as bigint;
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<Buy, Uint8Array>
+  async *encodeTransform(source: AsyncIterable<Buy | Buy[]> | Iterable<Buy | Buy[]>): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Buy.encode(p).finish()];
+        }
+      } else {
+        yield* [Buy.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, Buy>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<Buy> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Buy.decode(p)];
+        }
+      } else {
+        yield* [Buy.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): Buy {
+    return {
+      amount: isSet(object.amount) ? BigInt(object.amount) : 0n,
+      maxSolCost: isSet(object.maxSolCost) ? BigInt(object.maxSolCost) : 0n,
+    };
+  },
+
+  toJSON(message: Buy): unknown {
+    const obj: any = {};
+    if (message.amount !== 0n) {
+      obj.amount = message.amount.toString();
+    }
+    if (message.maxSolCost !== 0n) {
+      obj.maxSolCost = message.maxSolCost.toString();
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Buy>, I>>(base?: I): Buy {
+    return Buy.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Buy>, I>>(object: I): Buy {
+    const message = createBaseBuy();
+    message.amount = object.amount ?? 0n;
+    message.maxSolCost = object.maxSolCost ?? 0n;
+    return message;
+  },
+};
+
+function createBaseSell(): Sell {
+  return { amount: 0n, minSolOutput: 0n };
+}
+
+export const Sell: MessageFns<Sell> = {
+  encode(message: Sell, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.amount !== 0n) {
+      if (BigInt.asUintN(64, message.amount) !== message.amount) {
+        throw new globalThis.Error("value provided for field message.amount of type uint64 too large");
+      }
+      writer.uint32(8).uint64(message.amount);
+    }
+    if (message.minSolOutput !== 0n) {
+      if (BigInt.asUintN(64, message.minSolOutput) !== message.minSolOutput) {
+        throw new globalThis.Error("value provided for field message.minSolOutput of type uint64 too large");
+      }
+      writer.uint32(16).uint64(message.minSolOutput);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Sell {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSell();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.amount = reader.uint64() as bigint;
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.minSolOutput = reader.uint64() as bigint;
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<Sell, Uint8Array>
+  async *encodeTransform(source: AsyncIterable<Sell | Sell[]> | Iterable<Sell | Sell[]>): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Sell.encode(p).finish()];
+        }
+      } else {
+        yield* [Sell.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, Sell>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<Sell> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Sell.decode(p)];
+        }
+      } else {
+        yield* [Sell.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): Sell {
+    return {
+      amount: isSet(object.amount) ? BigInt(object.amount) : 0n,
+      minSolOutput: isSet(object.minSolOutput) ? BigInt(object.minSolOutput) : 0n,
+    };
+  },
+
+  toJSON(message: Sell): unknown {
+    const obj: any = {};
+    if (message.amount !== 0n) {
+      obj.amount = message.amount.toString();
+    }
+    if (message.minSolOutput !== 0n) {
+      obj.minSolOutput = message.minSolOutput.toString();
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Sell>, I>>(base?: I): Sell {
+    return Sell.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Sell>, I>>(object: I): Sell {
+    const message = createBaseSell();
+    message.amount = object.amount ?? 0n;
+    message.minSolOutput = object.minSolOutput ?? 0n;
+    return message;
+  },
+};
+
+function createBaseWithdraw(): Withdraw {
+  return {};
+}
+
+export const Withdraw: MessageFns<Withdraw> = {
+  encode(_: Withdraw, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Withdraw {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseWithdraw();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<Withdraw, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<Withdraw | Withdraw[]> | Iterable<Withdraw | Withdraw[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Withdraw.encode(p).finish()];
+        }
+      } else {
+        yield* [Withdraw.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, Withdraw>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<Withdraw> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Withdraw.decode(p)];
+        }
+      } else {
+        yield* [Withdraw.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(_: any): Withdraw {
+    return {};
+  },
+
+  toJSON(_: Withdraw): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Withdraw>, I>>(base?: I): Withdraw {
+    return Withdraw.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Withdraw>, I>>(_: I): Withdraw {
+    const message = createBaseWithdraw();
+    return message;
+  },
+};
+
+function createBaseSubscribeUpdateParsedTransaction(): SubscribeUpdateParsedTransaction {
+  return {
+    signature: Buffer.alloc(0),
+    slot: 0n,
+    account: undefined,
+    recentBlockhash: Buffer.alloc(0),
+    signatures: [],
+    instructions: [],
+  };
+}
+
+export const SubscribeUpdateParsedTransaction: MessageFns<SubscribeUpdateParsedTransaction> = {
+  encode(message: SubscribeUpdateParsedTransaction, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.signature.length !== 0) {
+      writer.uint32(10).bytes(message.signature);
+    }
+    if (message.slot !== 0n) {
+      if (BigInt.asUintN(64, message.slot) !== message.slot) {
+        throw new globalThis.Error("value provided for field message.slot of type uint64 too large");
+      }
+      writer.uint32(16).uint64(message.slot);
+    }
+    if (message.account !== undefined) {
+      SubscribeUpdateAccount.encode(message.account, writer.uint32(26).fork()).join();
+    }
+    if (message.recentBlockhash.length !== 0) {
+      writer.uint32(34).bytes(message.recentBlockhash);
+    }
+    for (const v of message.signatures) {
+      writer.uint32(42).bytes(v!);
+    }
+    for (const v of message.instructions) {
+      Instruction.encode(v!, writer.uint32(50).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SubscribeUpdateParsedTransaction {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSubscribeUpdateParsedTransaction();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.signature = Buffer.from(reader.bytes());
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.slot = reader.uint64() as bigint;
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.account = SubscribeUpdateAccount.decode(reader, reader.uint32());
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.recentBlockhash = Buffer.from(reader.bytes());
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.signatures.push(Buffer.from(reader.bytes()));
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.instructions.push(Instruction.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<SubscribeUpdateParsedTransaction, Uint8Array>
+  async *encodeTransform(
+    source:
+      | AsyncIterable<SubscribeUpdateParsedTransaction | SubscribeUpdateParsedTransaction[]>
+      | Iterable<SubscribeUpdateParsedTransaction | SubscribeUpdateParsedTransaction[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [SubscribeUpdateParsedTransaction.encode(p).finish()];
+        }
+      } else {
+        yield* [SubscribeUpdateParsedTransaction.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, SubscribeUpdateParsedTransaction>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<SubscribeUpdateParsedTransaction> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [SubscribeUpdateParsedTransaction.decode(p)];
+        }
+      } else {
+        yield* [SubscribeUpdateParsedTransaction.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): SubscribeUpdateParsedTransaction {
+    return {
+      signature: isSet(object.signature) ? Buffer.from(bytesFromBase64(object.signature)) : Buffer.alloc(0),
+      slot: isSet(object.slot) ? BigInt(object.slot) : 0n,
+      account: isSet(object.account) ? SubscribeUpdateAccount.fromJSON(object.account) : undefined,
+      recentBlockhash: isSet(object.recentBlockhash)
+        ? Buffer.from(bytesFromBase64(object.recentBlockhash))
+        : Buffer.alloc(0),
+      signatures: globalThis.Array.isArray(object?.signatures)
+        ? object.signatures.map((e: any) => Buffer.from(bytesFromBase64(e)))
+        : [],
+      instructions: globalThis.Array.isArray(object?.instructions)
+        ? object.instructions.map((e: any) => Instruction.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: SubscribeUpdateParsedTransaction): unknown {
+    const obj: any = {};
+    if (message.signature.length !== 0) {
+      obj.signature = base64FromBytes(message.signature);
+    }
+    if (message.slot !== 0n) {
+      obj.slot = message.slot.toString();
+    }
+    if (message.account !== undefined) {
+      obj.account = SubscribeUpdateAccount.toJSON(message.account);
+    }
+    if (message.recentBlockhash.length !== 0) {
+      obj.recentBlockhash = base64FromBytes(message.recentBlockhash);
+    }
+    if (message.signatures?.length) {
+      obj.signatures = message.signatures.map((e) => base64FromBytes(e));
+    }
+    if (message.instructions?.length) {
+      obj.instructions = message.instructions.map((e) => Instruction.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SubscribeUpdateParsedTransaction>, I>>(
+    base?: I,
+  ): SubscribeUpdateParsedTransaction {
+    return SubscribeUpdateParsedTransaction.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SubscribeUpdateParsedTransaction>, I>>(
+    object: I,
+  ): SubscribeUpdateParsedTransaction {
+    const message = createBaseSubscribeUpdateParsedTransaction();
+    message.signature = object.signature ?? Buffer.alloc(0);
+    message.slot = object.slot ?? 0n;
+    message.account = (object.account !== undefined && object.account !== null)
+      ? SubscribeUpdateAccount.fromPartial(object.account)
+      : undefined;
+    message.recentBlockhash = object.recentBlockhash ?? Buffer.alloc(0);
+    message.signatures = object.signatures?.map((e) => e) || [];
+    message.instructions = object.instructions?.map((e) => Instruction.fromPartial(e)) || [];
+    return message;
+  },
+};
+
 function createBasePingRequest(): PingRequest {
   return { count: 0 };
 }
@@ -3175,6 +4409,17 @@ export const JetstreamService = {
     responseSerialize: (value: SubscribeUpdate) => Buffer.from(SubscribeUpdate.encode(value).finish()),
     responseDeserialize: (value: Buffer) => SubscribeUpdate.decode(value),
   },
+  /** Subscribe to data streams with filtering support and parsed instructions */
+  subscribeParsed: {
+    path: "/jetstream.Jetstream/SubscribeParsed",
+    requestStream: true,
+    responseStream: true,
+    requestSerialize: (value: SubscribeParsedRequest) => Buffer.from(SubscribeParsedRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer) => SubscribeParsedRequest.decode(value),
+    responseSerialize: (value: SubscribeUpdateParsedTransaction) =>
+      Buffer.from(SubscribeUpdateParsedTransaction.encode(value).finish()),
+    responseDeserialize: (value: Buffer) => SubscribeUpdateParsedTransaction.decode(value),
+  },
   /** Basic ping/pong for connection testing */
   ping: {
     path: "/jetstream.Jetstream/Ping",
@@ -3200,6 +4445,8 @@ export const JetstreamService = {
 export interface JetstreamServer extends UntypedServiceImplementation {
   /** Subscribe to data streams with filtering support */
   subscribe: handleBidiStreamingCall<SubscribeRequest, SubscribeUpdate>;
+  /** Subscribe to data streams with filtering support and parsed instructions */
+  subscribeParsed: handleBidiStreamingCall<SubscribeParsedRequest, SubscribeUpdateParsedTransaction>;
   /** Basic ping/pong for connection testing */
   ping: handleUnaryCall<PingRequest, PongResponse>;
   /** Get information about current state */
@@ -3211,6 +4458,15 @@ export interface JetstreamClient extends Client {
   subscribe(): ClientDuplexStream<SubscribeRequest, SubscribeUpdate>;
   subscribe(options: Partial<CallOptions>): ClientDuplexStream<SubscribeRequest, SubscribeUpdate>;
   subscribe(metadata: Metadata, options?: Partial<CallOptions>): ClientDuplexStream<SubscribeRequest, SubscribeUpdate>;
+  /** Subscribe to data streams with filtering support and parsed instructions */
+  subscribeParsed(): ClientDuplexStream<SubscribeParsedRequest, SubscribeUpdateParsedTransaction>;
+  subscribeParsed(
+    options: Partial<CallOptions>,
+  ): ClientDuplexStream<SubscribeParsedRequest, SubscribeUpdateParsedTransaction>;
+  subscribeParsed(
+    metadata: Metadata,
+    options?: Partial<CallOptions>,
+  ): ClientDuplexStream<SubscribeParsedRequest, SubscribeUpdateParsedTransaction>;
   /** Basic ping/pong for connection testing */
   ping(request: PingRequest, callback: (error: ServiceError | null, response: PongResponse) => void): ClientUnaryCall;
   ping(

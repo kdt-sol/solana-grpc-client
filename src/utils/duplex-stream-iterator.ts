@@ -15,7 +15,15 @@ export class DuplexStreamIterator<TRequest, TResponse, TData = TResponse> extend
     protected readonly endTimeout: number
     protected readonly drainTimeout: number
 
-    public constructor(stream: ClientDuplexStream<TRequest, TResponse>, { autoEnd = true, endTimeout = 5000, drainTimeout = 5000, ...options }: DuplexStreamIteratorOptions<TResponse, TData> = {}) {
+    public constructor(
+        stream: ClientDuplexStream<TRequest, TResponse>,
+        {
+            autoEnd = true,
+            endTimeout = 5000,
+            drainTimeout = 5000,
+            ...options
+        }: DuplexStreamIteratorOptions<TResponse, TData> = {},
+    ) {
         super(stream, options)
 
         this.duplexStream = stream
@@ -71,7 +79,11 @@ export class DuplexStreamIterator<TRequest, TResponse, TData = TResponse> extend
 
         this.duplexStream.once('drain', handleDrain)
 
-        return withTimeout(writable, this.drainTimeout, 'Timed out while waiting for the stream to become writable').finally(() => {
+        return withTimeout(
+            writable,
+            this.drainTimeout,
+            'Timed out while waiting for the stream to become writable',
+        ).finally(() => {
             this.duplexStream.removeListener('drain', handleDrain)
         })
     }
