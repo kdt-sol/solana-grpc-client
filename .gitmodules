@@ -4,3 +4,6 @@
 [submodule "protos/yellowstone"]
 	path = protos/yellowstone
 	url = https://github.com/rpcpool/yellowstone-grpc.git
+[submodule "protos/thor-streamer"]
+	path = protos/thor-streamer
+	url = https://github.com/thorlabsDev/ThorStreamer.git
