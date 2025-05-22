@@ -4,11 +4,30 @@
 
 ![Solana gRPC Client](https://img.shields.io/badge/Solana-gRPC%20Client-blueviolet?style=for-the-badge&logo=solana)
 
-[![npm version](https://img.shields.io/npm/v/@kdt-sol/solana-grpc-client.svg?style=flat-square)](https://www.npmjs.com/package/@kdt-sol/solana-grpc-client) [![Build Status](https://img.shields.io/github/workflow/status/kdt-sol/solana-grpc-client/CI?style=flat-square)](https://github.com/kdt-sol/solana-grpc-client/actions) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT) [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/) [![npm downloads](https://img.shields.io/npm/dm/@kdt-sol/solana-grpc-client.svg?style=flat-square)](https://www.npmjs.com/package/@kdt-sol/solana-grpc-client) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
+[![npm version](https://img.shields.io/npm/v/@kdt-sol/solana-grpc-client?style=flat-square)](https://www.npmjs.com/package/@kdt-sol/solana-grpc-client) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/kdt-sol/solana-grpc-client/ci.yml?style=flat-square&label=CI)](https://github.com/kdt-sol/solana-grpc-client/actions) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT) [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/) [![npm downloads](https://img.shields.io/npm/dm/@kdt-sol/solana-grpc-client?style=flat-square)](https://www.npmjs.com/package/@kdt-sol/solana-grpc-client) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
 
 </div>
 
-A modern TypeScript library for connecting to and interacting with various Solana GRPC services like YellowStone Geyser GRPC and Orbit JetStream. Built on top of gRPC-js with full ESM support and CommonJS compatibility.
+> A high-performance TypeScript library for Solana gRPC services including YellowStone Geyser, Orbit JetStream, and ThorStreamer with full streaming support and type safety.
+
+## 🚀 Quick Start
+
+```bash
+pnpm add @kdt-sol/solana-grpc-client
+```
+
+```typescript
+import { yellowstone } from '@kdt-sol/solana-grpc-client'
+
+const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.com')
+const stream = await client.subscribe()
+
+for await (const update of stream) {
+    console.log('Received:', update)
+}
+```
+
+[📖 **View Complete Examples**](#usage-guide) | [📚 **API Reference**](#api-documentation)
 
 ## ✨ Key Features
 
@@ -21,12 +40,7 @@ A modern TypeScript library for connecting to and interacting with various Solan
 
 ## 📦 Installation
 
-### 🔧 Requirements
-
-- Node.js 18.0.0 or higher
-- Protocol Buffers compiler version 3 (protoc) if you need to regenerate code from protobuf
-
-### 📥 Package Installation
+**Requirements:** Node.js 18.0.0 or higher
 
 ```bash
 # With npm
@@ -39,27 +53,20 @@ yarn add @kdt-sol/solana-grpc-client
 pnpm add @kdt-sol/solana-grpc-client
 ```
 
-### 📤 Import Options
+**Basic Import:**
 
 ```typescript
-// Import the entire library
-import * as solanaGrpcClient from '@kdt-sol/solana-grpc-client'
-
-// Import specific clients
 import { yellowstone, jetstream, thorStreamer } from '@kdt-sol/solana-grpc-client'
 
-// Import specific modules directly
+// Or import specific modules
 import * as yellowstone from '@kdt-sol/solana-grpc-client/yellowstone'
-import * as jetstream from '@kdt-sol/solana-grpc-client/jetstream'
-import * as thorStreamer from '@kdt-sol/solana-grpc-client/thor-streamer'
+```
 
-// Alternative paths
-import * as yellowstone from '@kdt-sol/solana-grpc-client/clients/yellowstone'
-import * as jetstream from '@kdt-sol/solana-grpc-client/clients/jetstream'
-import * as thorStreamer from '@kdt-sol/solana-grpc-client/clients/thor-streamer'
+**Verify Installation:**
 
-// CommonJS
-const { yellowstone, jetstream, thorStreamer } = require('@kdt-sol/solana-grpc-client')
+```typescript
+import { yellowstone } from '@kdt-sol/solana-grpc-client'
+console.log('Library loaded successfully!')
 ```
 
 ## 🚀 Usage Guide
@@ -82,6 +89,11 @@ async function main() {
     // Get current slot
     const slotResponse = await client.getSlot({})
     console.log('Current slot:', slotResponse.slot)
+
+    // Get replay information
+    const replayInfo = await client.subscribeReplayInfo({})
+    console.log('Replay status:', replayInfo.replayMode ? 'Replaying' : 'Live')
+    console.log('Replay progress:', replayInfo.replayProgress)
 
     // Subscribe to updates
     const stream = await client.subscribe()
@@ -248,7 +260,6 @@ async function main() {
     // Process slot updates
     for await (const slotStatus of slotStream) {
         console.log('Slot:', slotStatus.slot.toString())
-        console.log('Parent slot:', slotStatus.parent.toString())
         console.log('Status:', slotStatus.status)
     }
 
@@ -332,27 +343,24 @@ main().catch(console.error)
 
 ### Clients
 
-- **YellowstoneGeyserClient**: Client for YellowStone Geyser GRPC API
+| Client                      | Description                            | Key Methods                                                                           |
+| --------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------- |
+| **YellowstoneGeyserClient** | Client for YellowStone Geyser GRPC API | `subscribe()`, `getVersion()`, `getSlot()`, `ping()`                                  |
+| **OrbitJetstreamClient**    | Client for Orbit JetStream API         | `subscribe()`, `ping()`, `getVersion()`                                               |
+| **ThorStreamerClient**      | Client for ThorStreamer API            | `subscribeToTransactions()`, `subscribeToAccountUpdates()`, `subscribeToSlotStatus()` |
 
-    - `subscribe()`: Subscribe to updates from the blockchain
-    - `getLatestBlockhash(request)`: Get the latest blockhash
-    - `getBlockHeight(request)`: Get the current block height
-    - `getSlot(request)`: Get the current slot
-    - `isBlockhashValid(request)`: Check if a blockhash is valid
-    - `getVersion(request)`: Get version information
-    - `ping(request)`: Check connection
+#### YellowstoneGeyserClient Methods
 
-- **OrbitJetstreamClient**: Client for Orbit JetStream API
-
-    - `subscribe()`: Subscribe to updates from JetStream
-    - `ping(request)`: Check connection
-    - `getVersion(request)`: Get version information
-
-- **ThorStreamerClient**: Client for ThorStreamer API
-    - `subscribeToTransactions(metadata?)`: Subscribe to transaction events
-    - `subscribeToAccountUpdates(metadata?)`: Subscribe to account update events
-    - `subscribeToSlotStatus(metadata?)`: Subscribe to slot status events
-    - `subscribeToWalletTransactions(walletAddresses, metadata?)`: Subscribe to transactions for specific wallets
+| Method                         | Description                              | Parameters        |
+| ------------------------------ | ---------------------------------------- | ----------------- |
+| `subscribe()`                  | Subscribe to updates from the blockchain | None              |
+| `subscribeReplayInfo(request)` | Get information about replay status      | `request: object` |
+| `getLatestBlockhash(request)`  | Get the latest blockhash                 | `request: object` |
+| `getBlockHeight(request)`      | Get the current block height             | `request: object` |
+| `getSlot(request)`             | Get the current slot                     | `request: object` |
+| `isBlockhashValid(request)`    | Check if a blockhash is valid            | `request: object` |
+| `getVersion(request)`          | Get version information                  | `request: object` |
+| `ping(request)`                | Check connection                         | `request: object` |
 
 ### Utilities
 
