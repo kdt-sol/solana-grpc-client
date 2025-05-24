@@ -1,428 +1,767 @@
 # @kdt-sol/solana-grpc-client
 
 <div align="center">
-
-![Solana gRPC Client](https://img.shields.io/badge/Solana-gRPC%20Client-blueviolet?style=for-the-badge&logo=solana)
-
-[![npm version](https://img.shields.io/npm/v/@kdt-sol/solana-grpc-client?style=flat-square)](https://www.npmjs.com/package/@kdt-sol/solana-grpc-client) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/kdt-sol/solana-grpc-client/ci.yml?style=flat-square&label=CI)](https://github.com/kdt-sol/solana-grpc-client/actions) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT) [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/) [![npm downloads](https://img.shields.io/npm/dm/@kdt-sol/solana-grpc-client?style=flat-square)](https://www.npmjs.com/package/@kdt-sol/solana-grpc-client) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
-
+  <img src="https://img.shields.io/badge/Solana-gRPC-9945FF?style=for-the-badge&logo=solana" alt="Solana gRPC" />
+  <img src="https://img.shields.io/npm/v/@kdt-sol/solana-grpc-client?style=for-the-badge" alt="NPM Version" />
+  <img src="https://img.shields.io/npm/dt/@kdt-sol/solana-grpc-client?style=for-the-badge" alt="NPM Downloads" />
+  <img src="https://img.shields.io/github/license/kdt-sol/solana-grpc-client?style=for-the-badge" alt="License" />
 </div>
 
-> A high-performance TypeScript library for Solana gRPC services including YellowStone Geyser, Orbit JetStream, and ThorStreamer with full streaming support and type safety.
+<div align="center">
+  <h3>🚀 High-Performance TypeScript Client for Solana gRPC Services</h3>
+  <p>Enterprise-grade streaming client supporting YellowStone Geyser, Orbit JetStream, ThorStreamer, and Shreder ShredStream APIs</p>
+</div>
 
-## 🚀 Quick Start
+---
 
-```bash
-pnpm add @kdt-sol/solana-grpc-client
-```
+## ✨ Features
 
-```typescript
-import { yellowstone } from '@kdt-sol/solana-grpc-client'
+### 🎯 **Multi-Provider Support**
+- **YellowStone Geyser**: Full-featured Solana data streaming with account/transaction/block subscriptions
+- **Orbit JetStream**: High-performance transaction streaming and block data access
+- **ThorStreamer**: Real-time account updates, slot status, and wallet transaction monitoring
+- **Shreder ShredStream**: Raw block entries and filtered transaction streaming
 
-const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.com')
-const stream = await client.subscribe()
+### ⚡ **Advanced Streaming**
+- **Bidirectional Streams**: Full duplex communication with async iterator support
+- **Connection Management**: Auto-reconnection, heartbeat monitoring, graceful degradation
+- **Stream Utilities**: Built-in `StreamIterator` and `DuplexStreamIterator` classes
+- **Backpressure Handling**: Smart flow control and memory management
 
-for await (const update of stream) {
-    console.log('Received:', update)
-}
-```
+### 🛡️ **Enterprise Ready**
+- **TypeScript First**: Full type safety with generated proto definitions
+- **Error Handling**: Comprehensive error hierarchy with context preservation
+- **Authentication**: Token-based auth with custom metadata support
+- **Performance**: Optimized for high-throughput real-time applications
 
-[📖 **View Complete Examples**](#usage-guide) | [📚 **API Reference**](#api-documentation)
+### 🔧 **Developer Experience**
+- **ESM & CJS**: Dual module support for maximum compatibility
+- **Zero Config**: Works out-of-the-box with sensible defaults
+- **Extensible**: Plugin architecture for custom middleware
+- **Well Documented**: Complete API reference with practical examples
 
-## ✨ Key Features
-
-- 🔄 **Streaming API** - Full support for bidirectional, client-streaming, and server-streaming data flows
-- 🔌 **Multiple Services** - Support for YellowStone Geyser GRPC, Orbit JetStream, and ThorStreamer
-- 📦 **Dual Format** - Supports both ESM and CommonJS
-- 🛡️ **TypeScript First** - Complete type definitions and excellent IDE experience
-- ⚡ **High Performance** - Optimized for performance with efficient stream processing
-- 🔐 **Security** - Support for TLS connections and token authentication
+---
 
 ## 📦 Installation
 
-**Requirements:** Node.js 18.0.0 or higher
-
+### Using PNPM (Recommended)
 ```bash
-# With npm
-npm install @kdt-sol/solana-grpc-client
-
-# With yarn
-yarn add @kdt-sol/solana-grpc-client
-
-# With pnpm
 pnpm add @kdt-sol/solana-grpc-client
 ```
 
-**Basic Import:**
-
-```typescript
-import { yellowstone, jetstream, thorStreamer } from '@kdt-sol/solana-grpc-client'
-
-// Or import specific modules
-import * as yellowstone from '@kdt-sol/solana-grpc-client/yellowstone'
+### Using NPM
+```bash
+npm install @kdt-sol/solana-grpc-client
 ```
 
-**Verify Installation:**
-
-```typescript
-import { yellowstone } from '@kdt-sol/solana-grpc-client'
-console.log('Library loaded successfully!')
+### Using Yarn
+```bash
+yarn add @kdt-sol/solana-grpc-client
 ```
 
-## 🚀 Usage Guide
+### Troubleshooting Installation
 
-### YellowStone Geyser GRPC
+**Node.js Version**: Requires Node.js 18+ with ESM support
+```bash
+node --version  # Should be v18.0.0 or higher
+```
+
+**gRPC Dependencies**: If you encounter native module issues:
+```bash
+# Clear npm cache and reinstall
+npm cache clean --force
+rm -rf node_modules package-lock.json
+npm install
+
+# For Apple Silicon Macs
+export GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=1
+npm install
+```
+
+---
+
+## 🚀 Quick Start
+
+### Basic Usage - YellowStone Geyser
 
 ```typescript
 import { yellowstone } from '@kdt-sol/solana-grpc-client'
 
 async function main() {
-    // Create client connecting to Yellowstone Geyser GRPC endpoint
-    const client = new yellowstone.YellowstoneGeyserClient('https://your-yellowstone-endpoint.com', {
-        token: 'your-auth-token', // Optional
-    })
-
-    // Get version information
-    const version = await client.getVersion({})
-    console.log('Yellowstone version:', version)
-
-    // Get current slot
-    const slotResponse = await client.getSlot({})
-    console.log('Current slot:', slotResponse.slot)
-
-    // Get replay information
-    const replayInfo = await client.subscribeReplayInfo({})
-    console.log('Replay status:', replayInfo.replayMode ? 'Replaying' : 'Live')
-    console.log('Replay progress:', replayInfo.replayProgress)
-
-    // Subscribe to updates
+    const client = new yellowstone.YellowstoneGeyserClient('https://your-yellowstone-endpoint.com')
+    
+    // Subscribe to account updates
     const stream = await client.subscribe()
-
-    // Process updates from stream
+    
+    // Send subscription request
+    await stream.write({
+        accounts: {
+            'solana-accounts': {
+                account: ['*'],
+                owner: ['11111111111111111111111111111112'], // System Program
+                filters: [],
+            },
+        },
+    })
+    
+    // Process real-time updates
     for await (const update of stream) {
-        console.log('Received update:', update)
-
-        // Process update based on type
-        if (update.accountInfo) {
-            console.log('Account update:', update.accountInfo)
-        } else if (update.slot) {
-            console.log('Slot update:', update.slot)
+        if (update.account) {
+            console.log('Account update:', {
+                pubkey: update.account.account?.pubkey,
+                lamports: update.account.account?.lamports,
+                owner: update.account.account?.owner,
+            })
         }
-
-        // You can write data back to the stream if needed
-        // This is useful for bidirectional communication
-        await stream.write({
-            ping: { id: 123 }, // Example: sending a ping request
-        })
     }
 }
 
 main().catch(console.error)
 ```
 
-### Orbit JetStream
+### Basic Usage - JetStream
 
 ```typescript
 import { jetstream } from '@kdt-sol/solana-grpc-client'
 
 async function main() {
-    // Create client connecting to Orbit JetStream endpoint
     const client = new jetstream.OrbitJetstreamClient('https://your-jetstream-endpoint.com')
-
-    // Check connection with ping
-    const pong = await client.ping({})
-    console.log('Ping successful:', pong)
-
-    // Subscribe to updates
-    const stream = await client.subscribe()
-
-    // Process updates from stream
-    for await (const update of stream) {
-        console.log('Received JetStream update:', update)
-
-        // Process update based on type
-        // ...
-
-        // Send data back to the server if needed
-        await stream.write({
-            // Your request data here according to the protocol
-        })
-    }
-}
-
-main().catch(console.error)
-```
-
-### Error Handling and Resubscription
-
-```typescript
-import { errors, yellowstone } from '@kdt-sol/solana-grpc-client'
-
-async function main() {
-    try {
-        const client = new yellowstone.YellowstoneGeyserClient('https://your-yellowstone-endpoint.com')
-        await client.getVersion({})
-    } catch (error) {
-        if (error instanceof errors.ConnectionError) {
-            console.error('Unable to connect to endpoint:', error.message)
-        } else if (error instanceof errors.BaseError) {
-            console.error('Client error:', error.message)
-        } else {
-            console.error('Unknown error:', error)
-        }
-    }
-}
-
-// Example of auto-reconnection with exponential backoff
-async function subscribeWithReconnection() {
-    const client = new yellowstone.YellowstoneGeyserClient('https://your-yellowstone-endpoint.com')
-
-    let retryCount = 0
-    const maxRetries = 5
-    const baseDelay = 1000 // 1 second initial delay
-
-    while (retryCount <= maxRetries) {
-        try {
-            console.log(`Attempting to subscribe (attempt ${retryCount + 1})`)
-            const stream = await client.subscribe()
-
-            // Reset retry count on successful connection
-            retryCount = 0
-
-            try {
-                // Process stream data
-                for await (const update of stream) {
-                    console.log('Received update:', update)
-                }
-            } catch (streamError) {
-                console.error('Stream error:', streamError)
-                // If stream fails, we'll retry from the outer loop
-                throw streamError
-            }
-        } catch (error) {
-            retryCount++
-            if (retryCount > maxRetries) {
-                console.error('Max retries reached, giving up')
-                throw error
-            }
-
-            // Exponential backoff with jitter
-            const delay = baseDelay * Math.pow(2, retryCount - 1) * (0.5 + Math.random() * 0.5)
-            console.log(`Retrying in ${Math.round(delay / 1000)} seconds...`)
-            await new Promise((resolve) => setTimeout(resolve, delay))
-        }
-    }
-}
-
-main().catch(console.error)
-subscribeWithReconnection().catch(console.error)
-```
-
-### ThorStreamer
-
-```typescript
-import { thorStreamer } from '@kdt-sol/solana-grpc-client'
-
-async function main() {
-    // Create client connecting to ThorStreamer endpoint
-    const client = new thorStreamer.ThorStreamerClient('https://your-thorstreamer-endpoint.com', {
-        token: 'your-auth-token', // Optional, will be sent with 'authorization' metadata
+    
+    // Subscribe to transaction stream
+    const stream = await client.subscribe({
+        accounts: ['YourTargetPubkey'],
+        commitment: 1, // Confirmed
     })
-
-    // Subscribe to transaction events
-    const transactionStream = await client.subscribeToTransactions()
-
-    // Process transaction events
-    for await (const transaction of transactionStream) {
-        console.log('Transaction slot:', transaction.slot.toString())
-        console.log('Transaction signature:', transaction.signature.toString('hex'))
-
-        // Process transaction data
-        if (transaction.transaction) {
-            console.log('Transaction details:', transaction.transaction)
+    
+    for await (const message of stream) {
+        if (message.transaction) {
+            console.log('Transaction:', {
+                signature: message.transaction.signature,
+                slot: message.transaction.slot,
+                accounts: message.transaction.transaction?.message?.accountKeys,
+            })
         }
-    }
-
-    // Subscribe to account updates
-    const accountStream = await client.subscribeToAccountUpdates()
-
-    // Process account updates
-    for await (const accountUpdate of accountStream) {
-        console.log('Account update slot:', accountUpdate.slot.toString())
-        console.log('Account pubkey:', accountUpdate.pubkey.toString('hex'))
-        console.log('Account owner:', accountUpdate.owner.toString('hex'))
-        console.log('Account lamports:', accountUpdate.lamports.toString())
-    }
-
-    // Subscribe to slot status
-    const slotStream = await client.subscribeToSlotStatus()
-
-    // Process slot updates
-    for await (const slotStatus of slotStream) {
-        console.log('Slot:', slotStatus.slot.toString())
-        console.log('Status:', slotStatus.status)
-    }
-
-    // Subscribe to specific wallet transactions
-    const walletAddresses = ['wallet1pubkey', 'wallet2pubkey']
-    const walletStream = await client.subscribeToWalletTransactions(walletAddresses)
-
-    // Process wallet transactions
-    for await (const transaction of walletStream) {
-        console.log('Wallet transaction:', transaction)
     }
 }
 
 main().catch(console.error)
 ```
 
-### Advanced Configuration
+---
+
+## 📖 API Reference
+
+### YellowstoneGeyserClient
+
+Complete client for YellowStone Geyser gRPC API providing comprehensive Solana blockchain data access.
+
+#### Methods
+
+| Method | Description | Parameters | Returns |
+|--------|-------------|------------|---------|
+| `subscribe()` | Subscribe to real-time blockchain updates | None | `DuplexStreamIterator` |
+| `subscribeReplayInfo(request)` | Get blockchain replay information | `SubscribeReplayInfoRequest` | `StreamIterator` |
+| `ping(request)` | Test connection with server | `PingRequest` | `Promise<PongResponse>` |
+| `getLatestBlockhash(request)` | Get most recent blockhash | `GetLatestBlockhashRequest` | `Promise<GetLatestBlockhashResponse>` |
+| `getBlockHeight(request)` | Get current block height | `GetBlockHeightRequest` | `Promise<GetBlockHeightResponse>` |
+| `getSlot(request)` | Get current slot number | `GetSlotRequest` | `Promise<GetSlotResponse>` |
+| `isBlockhashValid(request)` | Validate blockhash | `IsBlockhashValidRequest` | `Promise<IsBlockhashValidResponse>` |
+| `getVersion(request)` | Get server version info | `GetVersionRequest` | `Promise<GetVersionResponse>` |
+
+#### Usage Example
 
 ```typescript
 import { yellowstone } from '@kdt-sol/solana-grpc-client'
 
-// Create client with custom options
-const client = new yellowstone.YellowstoneGeyserClient('https://your-yellowstone-endpoint.com', {
-    // Authentication options
-    'token': 'your-auth-token',
-    'tokenMetadataKey': 'x-custom-auth-header',
+const client = new yellowstone.YellowstoneGeyserClient('wss://api.mainnet-beta.solana.com', {
+    token: 'your-auth-token',
+    'grpc.max_receive_message_length': 1024 * 1024 * 100,
+})
 
-    // gRPC options
-    'grpc.max_receive_message_length': 1024 * 1024 * 100, // 100MB
-    'grpc.keepalive_time_ms': 30000,
+// Get current slot
+const slotResponse = await client.getSlot({})
+console.log('Current slot:', slotResponse.slot)
 
-    // Stream options
-    'receiveTimeout': 120000,
-    'endTimeout': 5000,
-    'drainTimeout': 5000,
-    'autoEnd': true,
+// Subscribe to transactions with filters
+const stream = await client.subscribe()
+await stream.write({
+    transactions: {
+        'vote-transactions': {
+            vote: true,
+            failed: false,
+            signature: undefined,
+            accountInclude: [],
+            accountExclude: [],
+            accountRequired: [],
+        },
+    },
+})
+```
 
-    // Custom metadata
-    'metadata': {
-        'client-name': 'my-awesome-app',
+### OrbitJetstreamClient
+
+Lightweight client for Orbit JetStream API optimized for high-frequency transaction monitoring.
+
+#### Methods
+
+| Method | Description | Parameters | Returns |
+|--------|-------------|------------|---------|
+| `subscribe(request)` | Subscribe to filtered transaction stream | `SubscribeRequest` | `StreamIterator` |
+| `ping(request)` | Health check ping | `PingRequest` | `Promise<PongResponse>` |
+| `getVersion(request)` | Get API version | `GetVersionRequest` | `Promise<GetVersionResponse>` |
+
+### ThorStreamerClient
+
+Specialized client for ThorStreamer API focusing on account updates and slot monitoring.
+
+#### Methods
+
+| Method | Description | Parameters | Returns |
+|--------|-------------|------------|---------|
+| `subscribeToTransactions(request)` | Subscribe to transaction updates | `SubscribeTransactionsRequest` | `StreamIterator` |
+| `subscribeToAccountUpdates(request)` | Subscribe to account changes | `SubscribeAccountUpdatesRequest` | `StreamIterator` |
+| `subscribeToSlotStatus(request)` | Subscribe to slot status updates | `SubscribeSlotStatusRequest` | `StreamIterator` |
+| `subscribeToWalletTransactions(request)` | Subscribe to wallet-specific transactions | `SubscribeWalletTransactionsRequest` | `StreamIterator` |
+
+### ShrederClient
+
+Client for Shreder ShredStream API providing access to raw blockchain entries and filtered transactions.
+
+#### Methods
+
+| Method | Description | Parameters | Returns |
+|--------|-------------|------------|---------|
+| `subscribeEntries(request)` | Subscribe to raw block entries | `SubscribeEntriesRequest` | `StreamIterator` |
+| `subscribeTransactions(request)` | Subscribe to filtered transactions | `SubscribeTransactionsRequest` | `DuplexStreamIterator` |
+
+---
+
+## 💡 Usage Examples
+
+### Advanced YellowStone Subscription
+
+```typescript
+import { yellowstone } from '@kdt-sol/solana-grpc-client'
+
+async function advancedSubscription() {
+    const client = new yellowstone.YellowstoneGeyserClient('wss://api.mainnet-beta.solana.com')
+    const stream = await client.subscribe()
+    
+    // Multi-filter subscription
+    await stream.write({
+        accounts: {
+            'token-accounts': {
+                account: [],
+                owner: ['TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'], // SPL Token Program
+                filters: [
+                    { datasize: 165 }, // Token account size
+                    { memcmp: { offset: 32, bytes: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' } }, // USDC mint
+                ],
+            },
+        },
+        transactions: {
+            'swap-transactions': {
+                vote: false,
+                failed: false,
+                accountInclude: ['9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM'], // Raydium program
+            },
+        },
+        blocks: {
+            'recent-blocks': {
+                accountInclude: [],
+                includeTransactions: true,
+                includeAccounts: false,
+                includeEntries: false,
+            },
+        },
+    })
+    
+    // Process different update types
+    for await (const update of stream) {
+        if (update.account) {
+            console.log('Account update:', update.account.account?.pubkey)
+        } else if (update.transaction) {
+            console.log('Transaction:', update.transaction.transaction?.signature)
+        } else if (update.block) {
+            console.log('Block:', update.block.slot)
+        }
+    }
+}
+```
+
+### ThorStreamer Real-time Monitoring
+
+```typescript
+import { thorStreamer } from '@kdt-sol/solana-grpc-client'
+
+async function monitorWalletActivity() {
+    const client = new thorStreamer.ThorStreamerClient('https://thor-endpoint.com')
+    
+    // Monitor specific wallet addresses
+    const walletAddresses = [
+        'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK',
+        '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
+    ]
+    
+    const walletStream = await client.subscribeToWalletTransactions({
+        addresses: walletAddresses,
+        includeVotes: false,
+    })
+    
+    for await (const transaction of walletStream) {
+        console.log('Wallet activity detected:', {
+            signature: transaction.signature,
+            slot: transaction.slot,
+            accounts: transaction.accounts,
+            programIds: transaction.programIds,
+        })
+    }
+}
+
+// Monitor slot progression
+async function monitorSlots() {
+    const client = new thorStreamer.ThorStreamerClient('https://thor-endpoint.com')
+    const slotStream = await client.subscribeToSlotStatus({})
+    
+    for await (const slotUpdate of slotStream) {
+        console.log(`Slot ${slotUpdate.slot}: ${slotUpdate.status}`)
+        
+        if (slotUpdate.status === 'confirmed') {
+            console.log('Slot confirmed with', slotUpdate.transactionCount, 'transactions')
+        }
+    }
+}
+```
+
+### Shreder Raw Data Processing
+
+```typescript
+import { shreder } from '@kdt-sol/solana-grpc-client'
+
+async function processRawEntries() {
+    const client = new shreder.ShrederClient('https://shreder-endpoint.com', {
+        token: 'your-auth-token',
+    })
+    
+    // Subscribe to raw block entries
+    const entriesStream = await client.subscribeEntries({
+        startSlot: 250000000, // Start from specific slot
+    })
+    
+    for await (const entry of entriesStream) {
+        console.log('Raw entry:', {
+            slot: entry.slot,
+            numHashes: entry.numHashes,
+            hash: entry.hash,
+            transactions: entry.transactions?.length || 0,
+        })
+        
+        // Process each transaction in the entry
+        entry.transactions?.forEach((tx, index) => {
+            console.log(`Transaction ${index}:`, {
+                signature: tx.signature,
+                messageHash: tx.messageHash,
+                meta: tx.meta,
+            })
+        })
+    }
+}
+
+// Filtered transaction monitoring
+async function filterTransactions() {
+    const client = new shreder.ShrederClient('https://shreder-endpoint.com')
+    const stream = await client.subscribeTransactions({})
+    
+    // Send filter configuration
+    await stream.write({
+        filters: {
+            'raydium-swaps': {
+                programIds: ['675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8'],
+                accounts: [],
+                instructions: true,
+            },
+            'token-transfers': {
+                programIds: ['TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'],
+                accounts: [],
+                instructions: false,
+            },
+        },
+    })
+    
+    for await (const response of stream) {
+        console.log('Filtered transaction:', {
+            filters: response.filters,
+            signature: response.transaction?.signature,
+            slot: response.transaction?.slot,
+        })
+    }
+}
+```
+
+---
+
+## 🛠️ Stream Management
+
+### Using StreamIterator
+
+```typescript
+import { StreamIterator } from '@kdt-sol/solana-grpc-client'
+
+async function handleStream() {
+    const client = new jetstream.OrbitJetstreamClient('https://your-endpoint.com')
+    const stream = await client.subscribe({ accounts: ['pubkey'] })
+    
+    // Stream implements AsyncIterable
+    for await (const message of stream) {
+        console.log('Received:', message)
+        
+        // Check if stream is still active
+        if (stream.isEnded()) {
+            console.log('Stream ended')
+            break
+        }
+    }
+}
+```
+
+### Using DuplexStreamIterator
+
+```typescript
+import { DuplexStreamIterator } from '@kdt-sol/solana-grpc-client'
+
+async function handleBidirectionalStream() {
+    const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.com')
+    const stream = await client.subscribe()
+    
+    // Send requests
+    await stream.write({
+        accounts: { 'my-filter': { account: ['*'] } },
+    })
+    
+    // Receive responses
+    for await (const update of stream) {
+        console.log('Update:', update)
+        
+        // Send another request based on the update
+        if (update.account) {
+            await stream.write({
+                ping: { id: Date.now() },
+            })
+        }
+    }
+}
+```
+
+### Stream Lifecycle Management
+
+```typescript
+async function managedStream() {
+    const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.com')
+    const stream = await client.subscribe()
+    
+    // Set up error handling
+    stream.on('error', (error) => {
+        console.error('Stream error:', error)
+    })
+    
+    stream.on('end', () => {
+        console.log('Stream ended gracefully')
+    })
+    
+    // Process with timeout
+    const timeoutMs = 30000 // 30 seconds
+    const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Stream timeout')), timeoutMs)
+    })
+    
+    try {
+        await Promise.race([
+            (async () => {
+                for await (const update of stream) {
+                    console.log('Update:', update)
+                }
+            })(),
+            timeoutPromise,
+        ])
+    } finally {
+        // Cleanup
+        if (!stream.isEnded()) {
+            stream.end()
+        }
+    }
+}
+```
+
+---
+
+## 🚨 Error Handling
+
+### Error Types
+
+```typescript
+import { 
+    BaseError, 
+    ConnectionError, 
+    ParseUrlError, 
+    InvalidInputError, 
+    MessageDecodingError 
+} from '@kdt-sol/solana-grpc-client'
+
+async function handleErrors() {
+    try {
+        const client = new yellowstone.YellowstoneGeyserClient('invalid-url')
+        await client.getVersion({})
+    } catch (error) {
+        if (error instanceof ConnectionError) {
+            console.error('Connection failed:', error.message)
+            // Implement retry logic
+        } else if (error instanceof ParseUrlError) {
+            console.error('Invalid URL format:', error.message)
+            // Fix URL format
+        } else if (error instanceof InvalidInputError) {
+            console.error('Invalid input:', error.message)
+            // Validate input parameters
+        } else if (error instanceof MessageDecodingError) {
+            console.error('Message decoding failed:', error.message)
+            // Handle protocol errors
+        } else if (error instanceof BaseError) {
+            console.error('Client error:', error.message)
+            // Generic error handling
+        } else {
+            console.error('Unknown error:', error)
+            // Unexpected error
+        }
+    }
+}
+```
+
+### Retry Mechanisms
+
+```typescript
+async function withRetry<T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> {
+    let lastError: Error
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            return await operation()
+        } catch (error) {
+            lastError = error as Error
+            
+            if (attempt === maxRetries) {
+                throw lastError
+            }
+            
+            const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000)
+            console.log(`Attempt ${attempt} failed, retrying in ${delay}ms...`)
+            await new Promise(resolve => setTimeout(resolve, delay))
+        }
+    }
+    
+    throw lastError!
+}
+
+// Usage
+const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.com')
+const version = await withRetry(() => client.getVersion({}))
+```
+
+---
+
+## 🔧 Advanced Topics
+
+### Custom Authentication
+
+```typescript
+const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.com', {
+    token: 'your-jwt-token',
+    tokenMetadataKey: 'x-auth-token', // Custom header name
+    metadata: {
+        'client-id': 'my-app',
         'client-version': '1.0.0',
     },
 })
 ```
 
-### Writing Data to Stream
+### Performance Optimization
 
 ```typescript
-import { yellowstone } from '@kdt-sol/solana-grpc-client'
+const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.com', {
+    // Increase message size limits
+    'grpc.max_receive_message_length': 1024 * 1024 * 100, // 100MB
+    'grpc.max_send_message_length': 1024 * 1024 * 10,     // 10MB
+    
+    // Keepalive settings
+    'grpc.keepalive_time_ms': 30000,
+    'grpc.keepalive_timeout_ms': 5000,
+    'grpc.keepalive_permit_without_calls': true,
+    
+    // Stream settings
+    receiveTimeout: 120000, // 2 minutes
+    endTimeout: 5000,       // 5 seconds
+    drainTimeout: 5000,     // 5 seconds
+})
+```
 
-async function main() {
-    const client = new yellowstone.YellowstoneGeyserClient('https://your-yellowstone-endpoint.com')
+### Monitoring and Metrics
 
-    // Subscribe to stream
+```typescript
+async function monitoredStream() {
+    const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.com')
     const stream = await client.subscribe()
-
-    // Setting up filters for accounts
-    await stream.write({
-        accounts: {
-            accountIds: [Buffer.from('YourSolanaPublicKey', 'base64')],
-        },
-    })
-
-    // You can send additional requests during the stream's lifetime
-    setTimeout(async () => {
-        await stream.write({
-            ping: { id: Date.now() }, // Send a ping to keep connection alive
-        })
-    }, 30000)
-
-    // Process incoming messages
+    
+    let messageCount = 0
+    let bytesReceived = 0
+    const startTime = Date.now()
+    
+    // Metrics collection
+    setInterval(() => {
+        const elapsed = (Date.now() - startTime) / 1000
+        const messagesPerSecond = messageCount / elapsed
+        const mbPerSecond = (bytesReceived / elapsed) / (1024 * 1024)
+        
+        console.log(`Metrics: ${messagesPerSecond.toFixed(2)} msg/s, ${mbPerSecond.toFixed(2)} MB/s`)
+    }, 10000)
+    
     for await (const update of stream) {
-        console.log('Received:', update)
+        messageCount++
+        bytesReceived += JSON.stringify(update).length
+        
+        // Process update...
+    }
+}
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+#### Connection Timeouts
+
+```typescript
+// Problem: Connection timeouts
+// Solution: Increase timeout values
+const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.com', {
+    'grpc.keepalive_time_ms': 30000,
+    'grpc.keepalive_timeout_ms': 10000,
+    receiveTimeout: 300000, // 5 minutes
+})
+```
+
+#### Memory Issues
+
+```typescript
+// Problem: High memory usage
+// Solution: Implement backpressure handling
+async function handleBackpressure() {
+    const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.com')
+    const stream = await client.subscribe()
+    
+    let pendingMessages = 0
+    const maxPending = 100
+    
+    for await (const update of stream) {
+        if (pendingMessages >= maxPending) {
+            console.log('Backpressure: pausing stream processing')
+            await new Promise(resolve => setTimeout(resolve, 100))
+            continue
+        }
+        
+        pendingMessages++
+        processUpdate(update).finally(() => {
+            pendingMessages--
+        })
+    }
+}
+```
+
+#### Authentication Errors
+
+```typescript
+// Problem: 401 Unauthorized
+// Solution: Check token format and metadata key
+const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.com', {
+    token: 'Bearer your-jwt-token', // Include 'Bearer ' prefix if required
+    tokenMetadataKey: 'authorization', // Default: 'authorization'
+})
+```
+
+### Debug Mode
+
+```typescript
+// Enable debug logging
+process.env.GRPC_VERBOSITY = 'DEBUG'
+process.env.GRPC_TRACE = 'all'
+
+const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.com')
+```
+
+### Health Checks
+
+```typescript
+async function healthCheck() {
+    const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.com')
+    
+    try {
+        const pong = await client.ping({ id: Date.now() })
+        console.log('Health check passed:', pong)
+        return true
+    } catch (error) {
+        console.error('Health check failed:', error)
+        return false
     }
 }
 
-main().catch(console.error)
+// Run health checks periodically
+setInterval(healthCheck, 30000) // Every 30 seconds
 ```
 
-## 📚 API Documentation
-
-### Clients
-
-| Client                      | Description                            | Key Methods                                                                           |
-| --------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------- |
-| **YellowstoneGeyserClient** | Client for YellowStone Geyser GRPC API | `subscribe()`, `getVersion()`, `getSlot()`, `ping()`                                  |
-| **OrbitJetstreamClient**    | Client for Orbit JetStream API         | `subscribe()`, `ping()`, `getVersion()`                                               |
-| **ThorStreamerClient**      | Client for ThorStreamer API            | `subscribeToTransactions()`, `subscribeToAccountUpdates()`, `subscribeToSlotStatus()` |
-
-#### YellowstoneGeyserClient Methods
-
-| Method                         | Description                              | Parameters        |
-| ------------------------------ | ---------------------------------------- | ----------------- |
-| `subscribe()`                  | Subscribe to updates from the blockchain | None              |
-| `subscribeReplayInfo(request)` | Get information about replay status      | `request: object` |
-| `getLatestBlockhash(request)`  | Get the latest blockhash                 | `request: object` |
-| `getBlockHeight(request)`      | Get the current block height             | `request: object` |
-| `getSlot(request)`             | Get the current slot                     | `request: object` |
-| `isBlockhashValid(request)`    | Check if a blockhash is valid            | `request: object` |
-| `getVersion(request)`          | Get version information                  | `request: object` |
-| `ping(request)`                | Check connection                         | `request: object` |
-
-### Utilities
-
-- **Stream Management**: Utilities for handling gRPC data streams
-
-    - `DuplexStreamIterator`: Class for handling bidirectional streams easily with async iterator
-    - `StreamIterator`: Base class for unidirectional streams
-
-- **Error Handling**: Specialized error classes
-    - `BaseError`: Base error class
-    - `ConnectionError`: Connection error
-    - `ParseUrlError`: URL parsing error
-    - `InvalidInputError`: Invalid input error
-    - `MessageDecodingError`: Message decoding error
-
-Detailed API documentation can be found by examining the TypeScript definitions in the source code.
+---
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome! Please see the contribution process below:
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-### Contribution Process
-
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Local Development
+### Development Setup
 
 ```bash
-# Clone repo
+# Clone and setup
 git clone https://github.com/kdt-sol/solana-grpc-client.git
 cd solana-grpc-client
-
-# Install dependencies
 pnpm install
 
-# Generate code from proto files
+# Generate proto types
 pnpm run proto:generate
 
-# Build the project
+# Build
 pnpm run build
 
-# Check for errors
+# Test
+pnpm test
+
+# Lint
 pnpm run lint
-pnpm run typecheck
 ```
+
+### Reporting Issues
+
+When reporting issues, please include:
+
+1. Library version
+2. Node.js version
+3. Operating system
+4. Minimal reproduction code
+5. Error messages and stack traces
+
+---
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 📬 Contact
-
-Diep Dang - [@kdt310722](https://github.com/kdt310722) - kdt310722@gmail.com
-
-Project Link: [https://github.com/kdt-sol/solana-grpc-client](https://github.com/kdt-sol/solana-grpc-client)
-
 ---
 
 <div align="center">
-  <sub>Built with ❤️ by <a href="https://github.com/kdt310722">Diep Dang</a></sub>
+  <sub>Built with ❤️ for the Solana ecosystem</sub>
 </div>
