@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v0.1.1
+
+[compare changes](https://github.com/kdt-sol/solana-grpc-client/compare/v0.1.0...v0.1.1)
+
+### 🚀 Enhancements
+
+- Add shreder submodule ([0fa6c36](https://github.com/kdt-sol/solana-grpc-client/commit/0fa6c36))
+- **shreder:** Initialize index file to export client and generated shredstream ([5943007](https://github.com/kdt-sol/solana-grpc-client/commit/5943007))
+
+### ❤️ Contributors
+
+- DiepPk <kdt310722@gmail.com>
+
 ## v0.1.0
 
 [compare changes](https://github.com/kdt-sol/solana-grpc-client/compare/v0.0.3...v0.1.0)
