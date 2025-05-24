@@ -7,3 +7,6 @@
 [submodule "protos/thor-streamer"]
 	path = protos/thor-streamer
 	url = https://github.com/thorlabsDev/ThorStreamer.git
+[submodule "protos/shreder"]
+	path = protos/shreder
+	url = https://github.com/shrederxyz/shreder-rust-example.git
