@@ -9,7 +9,7 @@
 
 <div align="center">
   <h3>🚀 High-Performance TypeScript Client for Solana gRPC Services</h3>
-  <p>Enterprise-grade streaming client supporting YellowStone Geyser, Orbit JetStream, ThorStreamer, and Shreder ShredStream APIs</p>
+  <p>Enterprise-grade streaming client supporting YellowStone Geyser, Orbit JetStream, ThorStreamer, Shreder ShredStream, and Corvus ARPC APIs</p>
 </div>
 
 ---
@@ -21,6 +21,7 @@
 - **Orbit JetStream**: High-performance transaction streaming and block data access
 - **ThorStreamer**: Real-time account updates, slot status, and wallet transaction monitoring
 - **Shreder ShredStream**: Raw block entries and filtered transaction streaming
+- **Corvus ARPC**: Advanced transaction filtering and monitoring via Aurifex network
 
 ### ⚡ **Advanced Streaming**
 - **Bidirectional Streams**: Full duplex communication with async iterator support
@@ -89,10 +90,10 @@ import { yellowstone } from '@kdt-sol/solana-grpc-client'
 
 async function main() {
     const client = new yellowstone.YellowstoneGeyserClient('https://your-yellowstone-endpoint.com')
-    
+
     // Subscribe to account updates
     const stream = await client.subscribe()
-    
+
     // Send subscription request
     await stream.write({
         accounts: {
@@ -103,7 +104,7 @@ async function main() {
             },
         },
     })
-    
+
     // Process real-time updates
     for await (const update of stream) {
         if (update.account) {
@@ -126,13 +127,13 @@ import { jetstream } from '@kdt-sol/solana-grpc-client'
 
 async function main() {
     const client = new jetstream.OrbitJetstreamClient('https://your-jetstream-endpoint.com')
-    
+
     // Subscribe to transaction stream
     const stream = await client.subscribe({
         accounts: ['YourTargetPubkey'],
         commitment: 1, // Confirmed
     })
-    
+
     for await (const message of stream) {
         if (message.transaction) {
             console.log('Transaction:', {
@@ -234,6 +235,52 @@ Client for Shreder ShredStream API providing access to raw blockchain entries an
 | `subscribeEntries(request)` | Subscribe to raw block entries | `SubscribeEntriesRequest` | `StreamIterator` |
 | `subscribeTransactions(request)` | Subscribe to filtered transactions | `SubscribeTransactionsRequest` | `DuplexStreamIterator` |
 
+### CorvusArpcClient
+
+Client for Corvus ARPC API providing advanced transaction filtering and monitoring through the Aurifex network.
+
+#### Methods
+
+| Method | Description | Parameters | Returns |
+|--------|-------------|------------|---------|
+| `subscribe()` | Subscribe to filtered transaction stream | None | `DuplexStreamIterator` |
+
+#### Usage Example
+
+```typescript
+import { corvusArpc } from '@kdt-sol/solana-grpc-client'
+
+const client = new corvusArpc.CorvusArpcClient('https://your-corvus-endpoint.com', {
+    token: 'your-auth-token',
+})
+
+// Subscribe to transaction stream
+const stream = await client.subscribe()
+
+// Send subscription request with filters
+await stream.write({
+    transactions: {
+        'my-filter': {
+            accountInclude: ['YourTargetPubkey'],
+            accountExclude: [],
+            accountRequired: ['RequiredPubkey'],
+        },
+    },
+    pingId: 1,
+})
+
+// Process filtered transactions
+for await (const response of stream) {
+    if (response.transaction) {
+        console.log('Transaction:', {
+            slot: response.transaction.slot,
+            signatures: response.transaction.signatures,
+            accounts: response.transaction.accountKeys,
+        })
+    }
+}
+```
+
 ---
 
 ## 💡 Usage Examples
@@ -246,7 +293,7 @@ import { yellowstone } from '@kdt-sol/solana-grpc-client'
 async function advancedSubscription() {
     const client = new yellowstone.YellowstoneGeyserClient('wss://api.mainnet-beta.solana.com')
     const stream = await client.subscribe()
-    
+
     // Multi-filter subscription
     await stream.write({
         accounts: {
@@ -275,7 +322,7 @@ async function advancedSubscription() {
             },
         },
     })
-    
+
     // Process different update types
     for await (const update of stream) {
         if (update.account) {
@@ -296,18 +343,18 @@ import { thorStreamer } from '@kdt-sol/solana-grpc-client'
 
 async function monitorWalletActivity() {
     const client = new thorStreamer.ThorStreamerClient('https://thor-endpoint.com')
-    
+
     // Monitor specific wallet addresses
     const walletAddresses = [
         'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK',
         '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
     ]
-    
+
     const walletStream = await client.subscribeToWalletTransactions({
         addresses: walletAddresses,
         includeVotes: false,
     })
-    
+
     for await (const transaction of walletStream) {
         console.log('Wallet activity detected:', {
             signature: transaction.signature,
@@ -322,10 +369,10 @@ async function monitorWalletActivity() {
 async function monitorSlots() {
     const client = new thorStreamer.ThorStreamerClient('https://thor-endpoint.com')
     const slotStream = await client.subscribeToSlotStatus({})
-    
+
     for await (const slotUpdate of slotStream) {
         console.log(`Slot ${slotUpdate.slot}: ${slotUpdate.status}`)
-        
+
         if (slotUpdate.status === 'confirmed') {
             console.log('Slot confirmed with', slotUpdate.transactionCount, 'transactions')
         }
@@ -342,12 +389,12 @@ async function processRawEntries() {
     const client = new shreder.ShrederClient('https://shreder-endpoint.com', {
         token: 'your-auth-token',
     })
-    
+
     // Subscribe to raw block entries
     const entriesStream = await client.subscribeEntries({
         startSlot: 250000000, // Start from specific slot
     })
-    
+
     for await (const entry of entriesStream) {
         console.log('Raw entry:', {
             slot: entry.slot,
@@ -355,7 +402,7 @@ async function processRawEntries() {
             hash: entry.hash,
             transactions: entry.transactions?.length || 0,
         })
-        
+
         // Process each transaction in the entry
         entry.transactions?.forEach((tx, index) => {
             console.log(`Transaction ${index}:`, {
@@ -371,7 +418,7 @@ async function processRawEntries() {
 async function filterTransactions() {
     const client = new shreder.ShrederClient('https://shreder-endpoint.com')
     const stream = await client.subscribeTransactions({})
-    
+
     // Send filter configuration
     await stream.write({
         filters: {
@@ -387,13 +434,121 @@ async function filterTransactions() {
             },
         },
     })
-    
+
     for await (const response of stream) {
         console.log('Filtered transaction:', {
             filters: response.filters,
             signature: response.transaction?.signature,
             slot: response.transaction?.slot,
         })
+    }
+}
+```
+
+### Corvus ARPC Advanced Filtering
+
+```typescript
+import { corvusArpc } from '@kdt-sol/solana-grpc-client'
+
+async function advancedTransactionFiltering() {
+    const client = new corvusArpc.CorvusArpcClient('https://corvus-endpoint.com', {
+        token: 'your-auth-token',
+    })
+
+    const stream = await client.subscribe()
+
+    // Set up multiple transaction filters
+    await stream.write({
+        transactions: {
+            'dex-trades': {
+                accountInclude: [
+                    '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM', // Raydium
+                    '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8', // Raydium V4
+                    'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',  // Jupiter
+                ],
+                accountExclude: [],
+                accountRequired: [],
+            },
+            'token-mints': {
+                accountInclude: ['TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'],
+                accountExclude: [],
+                accountRequired: ['TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'],
+            },
+            'nft-trades': {
+                accountInclude: [
+                    'M2mx93ekt1fmXSVkTrUL9xVFHkmME8HTUi5Cyc5aF7K',  // Magic Eden
+                    'hausS13jsjafwWwGqZTUQRmWyvyxn9EQpqMwV1PBBmk', // Hadeswap
+                ],
+                accountExclude: [],
+                accountRequired: [],
+            },
+        },
+        pingId: Date.now(),
+    })
+
+    // Process filtered transactions
+    for await (const response of stream) {
+        console.log('Received response:', {
+            createdAt: response.createdAt,
+            filters: response.filters,
+        })
+
+        if (response.transaction) {
+            const tx = response.transaction
+            console.log('Transaction details:', {
+                slot: tx.slot,
+                signatures: tx.signatures.map(sig => Buffer.from(sig).toString('base64')),
+                accountKeys: tx.accountKeys.map(key => Buffer.from(key).toString('base64')),
+                instructions: tx.instructions.length,
+                addressTableLookups: tx.addressTableLookups.length,
+            })
+
+            // Process instructions
+            tx.instructions.forEach((instruction, index) => {
+                console.log(`Instruction ${index}:`, {
+                    programIdIndex: instruction.programIdIndex,
+                    accountsLength: instruction.accounts.length,
+                    dataLength: instruction.data.length,
+                })
+            })
+        }
+
+        // Send periodic ping to keep connection alive
+        if (Date.now() % 30000 < 1000) { // Every ~30 seconds
+            await stream.write({
+                transactions: {},
+                pingId: Date.now(),
+            })
+        }
+    }
+}
+
+// Monitor specific wallet activity
+async function monitorWalletWithCorvus() {
+    const client = new corvusArpc.CorvusArpcClient('https://corvus-endpoint.com')
+    const stream = await client.subscribe()
+
+    const walletAddress = 'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK'
+
+    await stream.write({
+        transactions: {
+            'wallet-activity': {
+                accountInclude: [walletAddress],
+                accountExclude: [],
+                accountRequired: [walletAddress], // Ensure wallet is always involved
+            },
+        },
+    })
+
+    for await (const response of stream) {
+        if (response.transaction) {
+            console.log('Wallet activity detected:', {
+                slot: response.transaction.slot,
+                numSignatures: response.transaction.signatures.length,
+                numAccounts: response.transaction.accountKeys.length,
+                timestamp: response.createdAt,
+            })
+        }
     }
 }
 ```
@@ -410,11 +565,11 @@ import { StreamIterator } from '@kdt-sol/solana-grpc-client'
 async function handleStream() {
     const client = new jetstream.OrbitJetstreamClient('https://your-endpoint.com')
     const stream = await client.subscribe({ accounts: ['pubkey'] })
-    
+
     // Stream implements AsyncIterable
     for await (const message of stream) {
         console.log('Received:', message)
-        
+
         // Check if stream is still active
         if (stream.isEnded()) {
             console.log('Stream ended')
@@ -432,16 +587,16 @@ import { DuplexStreamIterator } from '@kdt-sol/solana-grpc-client'
 async function handleBidirectionalStream() {
     const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.com')
     const stream = await client.subscribe()
-    
+
     // Send requests
     await stream.write({
         accounts: { 'my-filter': { account: ['*'] } },
     })
-    
+
     // Receive responses
     for await (const update of stream) {
         console.log('Update:', update)
-        
+
         // Send another request based on the update
         if (update.account) {
             await stream.write({
@@ -458,22 +613,22 @@ async function handleBidirectionalStream() {
 async function managedStream() {
     const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.com')
     const stream = await client.subscribe()
-    
+
     // Set up error handling
     stream.on('error', (error) => {
         console.error('Stream error:', error)
     })
-    
+
     stream.on('end', () => {
         console.log('Stream ended gracefully')
     })
-    
+
     // Process with timeout
     const timeoutMs = 30000 // 30 seconds
     const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Stream timeout')), timeoutMs)
     })
-    
+
     try {
         await Promise.race([
             (async () => {
@@ -499,12 +654,12 @@ async function managedStream() {
 ### Error Types
 
 ```typescript
-import { 
-    BaseError, 
-    ConnectionError, 
-    ParseUrlError, 
-    InvalidInputError, 
-    MessageDecodingError 
+import {
+    BaseError,
+    ConnectionError,
+    ParseUrlError,
+    InvalidInputError,
+    MessageDecodingError
 } from '@kdt-sol/solana-grpc-client'
 
 async function handleErrors() {
@@ -540,23 +695,23 @@ async function handleErrors() {
 ```typescript
 async function withRetry<T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> {
     let lastError: Error
-    
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
             return await operation()
         } catch (error) {
             lastError = error as Error
-            
+
             if (attempt === maxRetries) {
                 throw lastError
             }
-            
+
             const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000)
             console.log(`Attempt ${attempt} failed, retrying in ${delay}ms...`)
             await new Promise(resolve => setTimeout(resolve, delay))
         }
     }
-    
+
     throw lastError!
 }
 
@@ -589,12 +744,12 @@ const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.co
     // Increase message size limits
     'grpc.max_receive_message_length': 1024 * 1024 * 100, // 100MB
     'grpc.max_send_message_length': 1024 * 1024 * 10,     // 10MB
-    
+
     // Keepalive settings
     'grpc.keepalive_time_ms': 30000,
     'grpc.keepalive_timeout_ms': 5000,
     'grpc.keepalive_permit_without_calls': true,
-    
+
     // Stream settings
     receiveTimeout: 120000, // 2 minutes
     endTimeout: 5000,       // 5 seconds
@@ -608,24 +763,24 @@ const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.co
 async function monitoredStream() {
     const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.com')
     const stream = await client.subscribe()
-    
+
     let messageCount = 0
     let bytesReceived = 0
     const startTime = Date.now()
-    
+
     // Metrics collection
     setInterval(() => {
         const elapsed = (Date.now() - startTime) / 1000
         const messagesPerSecond = messageCount / elapsed
         const mbPerSecond = (bytesReceived / elapsed) / (1024 * 1024)
-        
+
         console.log(`Metrics: ${messagesPerSecond.toFixed(2)} msg/s, ${mbPerSecond.toFixed(2)} MB/s`)
     }, 10000)
-    
+
     for await (const update of stream) {
         messageCount++
         bytesReceived += JSON.stringify(update).length
-        
+
         // Process update...
     }
 }
@@ -657,17 +812,17 @@ const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.co
 async function handleBackpressure() {
     const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.com')
     const stream = await client.subscribe()
-    
+
     let pendingMessages = 0
     const maxPending = 100
-    
+
     for await (const update of stream) {
         if (pendingMessages >= maxPending) {
             console.log('Backpressure: pausing stream processing')
             await new Promise(resolve => setTimeout(resolve, 100))
             continue
         }
-        
+
         pendingMessages++
         processUpdate(update).finally(() => {
             pendingMessages--
@@ -702,7 +857,7 @@ const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.co
 ```typescript
 async function healthCheck() {
     const client = new yellowstone.YellowstoneGeyserClient('https://your-endpoint.com')
-    
+
     try {
         const pong = await client.ping({ id: Date.now() })
         console.log('Health check passed:', pong)
