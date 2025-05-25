@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v0.1.2
+
+[compare changes](https://github.com/kdt-sol/solana-grpc-client/compare/v0.1.1...v0.1.2)
+
+### 🚀 Enhancements
+
+- Corvus arpc ([a310551](https://github.com/kdt-sol/solana-grpc-client/commit/a310551))
+- Corvus arpc ([fa6a68d](https://github.com/kdt-sol/solana-grpc-client/commit/fa6a68d))
+
+### ❤️ Contributors
+
+- DiepPk <kdt310722@gmail.com>
+
 ## v0.1.1
 
 [compare changes](https://github.com/kdt-sol/solana-grpc-client/compare/v0.1.0...v0.1.1)

@@ -1,7 +1,7 @@
 {
     "name": "@kdt-sol/solana-grpc-client",
     "type": "module",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "packageManager": "pnpm@10.11.0",
     "description": "Typescript client implements for multiple Solana GRPC services (YellowStone Geyser GRPC, Orbit JetStream,...)",
     "author": "Diep Dang <kdt310722@gmail.com>",
