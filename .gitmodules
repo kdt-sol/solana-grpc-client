@@ -10,3 +10,6 @@
 [submodule "protos/shreder"]
 	path = protos/shreder
 	url = https://github.com/shrederxyz/shreder-rust-example.git
+[submodule "protos/corvus-arpc"]
+	path = protos/corvus-arpc
+	url = https://github.com/corvus-labs-io/aurifex.git
